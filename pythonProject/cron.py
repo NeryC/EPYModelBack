@@ -8,7 +8,7 @@ import io
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def proyeccionr():
-    print(f'Hi, {"proyection Rs"}')
+    print(f'Hi, {"proyection R"}')
     # dataset proyección
     df2 = pd.read_csv(os.path.join(BASE_DIR, 'data/proyR.csv'), header=0)
     # proyecciones anteriores
@@ -93,6 +93,7 @@ def proyeccionh():
     df.insert(8, 'q75', df2['q75'])
     df.insert(9, 'X10p', df2['X10p_h'])
     df.insert(10, 'X20p', df2['X20p_l'])
+    dfdatos['fecha'] = dfdatos['fecha'].astype(str).tolist()
     df = pd.merge(df, dfant, on='fecha', how='outer')
     df = pd.merge(df, dfdatos, on='fecha', how='outer')
     df.insert(13, 'CapacidadMax', 1319)
@@ -137,6 +138,7 @@ def proyeccionu():
     df.insert(8, 'q75', df2['q75'])
     df.insert(9, 'X10p', df2['X10p_h'])
     df.insert(10, 'X20p', df2['X20p_l'])
+    dfdatos['fecha'] = dfdatos['fecha'].astype(str).tolist()
     df = pd.merge(df, dfant, on='fecha', how='outer')
     df = pd.merge(df, dfdatos, on='fecha', how='outer')
     df.insert(13, 'CapacidadMax', 461)

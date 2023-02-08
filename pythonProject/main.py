@@ -8,6 +8,6 @@ from cron import proyeccionf, proyeccionr, proyeccionu, proyeccionh
 if __name__ == '__main__':
     print('hola')
     proyeccionf()
-    # proyeccionr()
-    # proyeccionu()
-    # proyeccionh()
+    proyeccionr()
+    proyeccionu()
+    proyeccionh()
