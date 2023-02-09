@@ -148,7 +148,7 @@ def proyeccionu():
 
 
 def proyeccionf():
-    print(f'Hi, {"proyection R"}')
+    print(f'Hi, {"proyection F"}')
     ##fecha inicial
     fecha = dt.date(2020, 3, 6)
     # dataset proyección
@@ -192,5 +192,3 @@ def proyeccionf():
     df.insert(14, 'FechaCapacidadMax', dfdatosF['fecha'].max())
     result = df.to_json(r'results/proyF.json', orient="records")
     return
-
-
