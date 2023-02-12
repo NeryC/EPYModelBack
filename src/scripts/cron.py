@@ -7,7 +7,6 @@ ROOT_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
 
 
 def proyeccionR():
-    print(f'Hi, {"proyection R"}')
     # dataset proyección
     df2 = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/proyR.csv'), header=0)
     # proyecciones anteriores
@@ -55,11 +54,11 @@ def proyeccionR():
     df.insert(13, 'CapacidadMax', Cantidad_Max)
     df.insert(14, 'FechaCapacidadMax', dfdatos['fecha'].max())
     result = df.to_json(os.path.join(ROOT_DIR, 'public/results/proyR.json'), orient="records")
+    print(f'Proyeccion R')
     return
 
 
 def proyeccionH():
-    print(f'Hi, {"proyection H"}')
     # dataset proyección
     df2 = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/proyH.csv'), header=0)
     # proyecciones anteriores
@@ -98,11 +97,11 @@ def proyeccionH():
     df.insert(13, 'CapacidadMax', 1319)
     df.insert(14, 'FechaCapacidadMax', '2020-12-31')
     result = df.to_json(os.path.join(ROOT_DIR, 'public/results/proyH.json'), orient="records")
+    print(f'Proyeccion H')
     return
 
 
 def proyeccionU():
-    print(f'Hi, {"proyection U"}')
     ##fecha inicial
     fecha = dt.date(2020, 3, 6)
     # dataset proyección
@@ -143,11 +142,11 @@ def proyeccionU():
     df.insert(13, 'CapacidadMax', 461)
     df.insert(14, 'FechaCapacidadMax', '2020-12-31')
     result = df.to_json(os.path.join(ROOT_DIR, 'public/results/proyU.json'), orient="records")
+    print(f'Proyeccion U')
     return
 
 
 def proyeccionF():
-    print(f'Hi, {"proyection F"}')
     ##fecha inicial
     fecha = dt.date(2020, 3, 6)
     # dataset proyección
@@ -190,5 +189,5 @@ def proyeccionF():
     df.insert(13, 'CapacidadMax', Cantidad_Max)
     df.insert(14, 'FechaCapacidadMax', dfdatosF['fecha'].max())
     result = df.to_json(os.path.join(ROOT_DIR, 'public/results/proyF.json'), orient="records")
-    # 'results/proyF.json'
+    print(f'Proyeccion F')
     return
