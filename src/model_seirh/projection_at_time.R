@@ -8,7 +8,12 @@ library("roll")
 print(as.Date(as.numeric(as.Date("2020-03-06")) + n_shift, origin = "1970-01-01"))
 # bitacora$importar_datos_desde_linea_n(n_shift)
 
-parametros <- modules::use("./parametros.R")
+root_path <- paste(getwd(),
+  "/src/model_seirh/",
+  sep = ""
+)
+
+parametros <- modules::use(glue("{root_path}parametros.R"))
 
 data <- read.csv(parametros$filepaths$datos_diarios,
   sep = ";", fileEncoding = "UTF-8-BOM"
@@ -41,8 +46,12 @@ date_max <- max(as.Date(data$Fecha, "%d/%m/%Y"))
 data_cumdead <- cumsum(data_dead)
 data_cumconf <- cumsum(data_conf)
 
-dir_file <- "res14/"
-data_path <- "../../public/data/"
+dir_file <-
+  paste(
+    parametros$model_seirh,
+    "res14/",
+    sep = ""
+  )
 
 s <- as.numeric(bitacora$obtener_datos()["S"])
 e <- as.numeric(bitacora$obtener_datos()["E"])
@@ -140,7 +149,7 @@ odefun_proy <- function(t, state, parameters) {
   }) # end with(as.list ...
 }
 
-simSEIRHUF <- paste("../../public/data/", "sim_SEIRHUF.csv", sep = "")
+simSEIRHUF <- paste(parametros$data_path, "sim_SEIRHUF.csv", sep = "")
 sim <- read.csv(simSEIRHUF)
 
 ntime <- length(sim$beta)
@@ -242,7 +251,7 @@ colnames(Rnumber) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(data_path, "Rnumber", ".csv", sep = "")
+filePath <- paste(parametros$data_path, "Rnumber", ".csv", sep = "")
 x <- data.frame(date = idate, Rnumber)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
@@ -418,7 +427,7 @@ colnames(proyR) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(data_path, "proyR", ".csv", sep = "")
+filePath <- paste(parametros$data_path, "proyR", ".csv", sep = "")
 x <- data.frame(date = idate, proyR)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
@@ -470,7 +479,7 @@ colnames(proyF) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(data_path, "proyF", ".csv", sep = "")
+filePath <- paste(parametros$data_path, "proyF", ".csv", sep = "")
 x <- data.frame(date = idate, proyF)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
@@ -514,7 +523,7 @@ colnames(proyH) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(data_path, "proyH", ".csv", sep = "")
+filePath <- paste(parametros$data_path, "proyH", ".csv", sep = "")
 x <- data.frame(date = idate, proyH)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
@@ -554,7 +563,7 @@ colnames(proyU) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(data_path, "proyU", ".csv", sep = "")
+filePath <- paste(parametros$data_path, "proyU", ".csv", sep = "")
 x <- data.frame(date = idate, proyU)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 

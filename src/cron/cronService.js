@@ -1,42 +1,60 @@
 import cron from "node-cron";
-import * as child from "child_process";
+import { execSync } from "child_process";
 import path from "path";
 import fs from "fs";
 
 const copyFile = (fileName) => {
-  // tengo que cambiar por las direcciones finales rawData y data
-  const fromPath = `${path.resolve()}\\public\\test1\\`;
-  const toPath = `${path.resolve()}\\public\\test2\\`;
+  const fromPath = `${path.resolve()}/public/rawData/`;
+  const toPath = `${path.resolve()}/public/data/`;
   fs.copyFileSync(`${fromPath}${fileName}`, `${toPath}${fileName}`);
   console.log(`${fileName} se copio a data`);
+};
+const execSyncRscript = (fileName) => {
+  execSync(`Rscript ${path.resolve()}/src/model_seirh/${fileName}`, {
+    stdio: "inherit",
+  });
+
+  console.log(`${fileName} finalizado`);
+};
+const execSyncPython = () => {
+  execSync(`python ${path.resolve()}/src/scripts/main.py`, {
+    stdio: "inherit",
+  });
+  console.log(`${fileName} finalizado`);
 };
 
 const projections = cron.schedule("1 * * * * *", () => {
   const descargarFileName = "Descargar datos_Datos completos_data.csv";
   const fallecidosFileName = "FALLECIDOS_Datos completos_data.csv";
   const registroFileName = "REGISTRO DIARIO_Datos completos_data.csv";
+  const clean_V = "clean_V.R";
+  const clean_R = "clean_R.R";
+  const clean_F = "clean_F.R";
+  const test_seirhuf_normal = "test_seirhuf_normal.R";
 
-  console.log("========= Copiar Archivos =========");
+  console.log("********** Iniciando Actualizacion **********");
+  console.log("========= 1 - Descargar Datos =========");
+  console.log("========= 2 - Pre Procesamiento =========");
+
+  execSyncRscript(clean_V);
+  execSyncRscript(clean_R);
+  execSyncRscript(clean_F);
+
+  console.log("========= 3 - Copiar Archivos =========");
 
   copyFile(descargarFileName);
   copyFile(fallecidosFileName);
   copyFile(registroFileName);
 
-  console.log("========= Generar Archivos de Simulacion =========");
+  console.log("========= 4 - test_seirhuf_normal =========");
 
-  const pythonProcess = child.spawn("python", [
-    `${path.resolve()}\\src\\scripts\\main.py`,
-  ]);
+  execSyncRscript(test_seirhuf_normal);
 
-  pythonProcess.stdout.on("data", function (data) {
-    console.log(data.toString());
-  });
+  console.log("========= 5 - Generar Archivos de Simulacion =========");
 
-  pythonProcess.stdout.on("end", function () {
-    console.log("Finished");
-  });
+  execSyncPython();
 
-  pythonProcess.stdin.end();
+  console.log("********** Actualizacion Finalizada **********");
 });
 
 const cronJobs = [projections];

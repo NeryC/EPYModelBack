@@ -1,8 +1,8 @@
 rm(list = ls())
 library(readr)
 
-setwd(dirname(getwd()))
-root_path <- dirname(getwd())
+setwd(getwd())
+root_path <- getwd()
 
 datos_fallecidos_raw <-
   read.csv(

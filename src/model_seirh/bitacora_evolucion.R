@@ -2,9 +2,15 @@ import("dplyr", "%>%")
 import("glue", "glue")
 import("R.utils", "countLines")
 
-# parametros <- modules::use("./parametros.R")
+root_path <- paste(getwd(),
+  "/src/model_seirh/",
+  sep = ""
+)
 
-archivo_de_salida_filepath <- "../../public/data/sim_SEIRHUF.csv" # parametros$filepaths$bitacora
+parametros <- modules::use(glue("{root_path}parametros.R"))
+
+archivo_de_salida_filepath <-
+  glue("{parametros$data_path}sim_SEIRHUF.csv") # parametros$filepaths$bitacora
 
 export("ejecutar_model_init")
 ejecutar_model_init <- FALSE

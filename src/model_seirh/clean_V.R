@@ -1,8 +1,8 @@
 rm(list = ls())
 library(readr)
 library(dplyr)
-setwd(dirname(getwd()))
-root_path <- dirname(getwd())
+setwd(getwd())
+root_path <- getwd()
 webfile <- "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 covid_data <- read_csv(webfile, show_col_types = FALSE)
 data_py <- covid_data[covid_data$location == "Paraguay", ]

@@ -14,13 +14,19 @@ rstan_options(auto_write = TRUE) # Para evitar recompilacion de modelos STAN
 
 
 setwd(getwd())
-root_path <- dirname(dirname(getwd()))
+root_path <- paste(getwd(),
+  "/src/model_seirh/",
+  sep = ""
+)
 
-parametros <- modules::use("./parametros.R")
-bitacora <- modules::use("./bitacora_evolucion.R")
-inferencia <- modules::use("./inferencia_estadistica.R")
-reportes <- modules::use("./reportes.R")
-sim_seirhuf_path <- "../../../public/data/prob.csv"
+parametros <- modules::use(glue("{root_path}parametros.R"))
+bitacora <- modules::use(glue("{root_path}bitacora_evolucion.R"))
+inferencia <- modules::use(glue("{root_path}inferencia_estadistica.R"))
+reportes <- modules::use(glue("{root_path}reportes.R"))
+sim_seirhuf_path <- paste(parametros$data_path,
+  "prob.csv",
+  sep = ""
+)
 
 # TODO Generalizar a listas y estructuras mas complejas
 reportar <- function(e) {
@@ -283,11 +289,11 @@ if (loopbool == 1) {
       }
       seed <- get_seed(fitmodel_seir)
       reportes$graficar_pares_entre_parametros_en_pdf(
-        glue("./res14/pair_out/pairs_{n_shift}_seir.pdf"),
+        glue("{parametros$model_seirh}res14/pair_out/pairs_seir.pdf"),
         fitmodel_seir, pars_seir
       )
       reportes$graficar_parametros_vs_iteraciones_en_pdf(
-        glue("./res14/pair_out/trace_{n_shift}_seir.pdf"),
+        glue("{parametros$model_seirh}res14/pair_out/trace_seir.pdf"),
         fitmodel_seir, pars_seir
       )
 
@@ -437,11 +443,15 @@ if (loopbool == 1) {
       }
       seed <- get_seed(fitmodel_seirh)
       reportes$graficar_pares_entre_parametros_en_pdf(
-        glue("./res14/pair_out/pairs_{n_shift}_seirh.pdf"),
+        glue(
+          "{parametros$model_seirh}res14/pair_out/pairs_seirh.pdf"
+        ),
         fitmodel_seirh, pars_seir
       )
       reportes$graficar_parametros_vs_iteraciones_en_pdf(
-        glue("./res14/pair_out/trace_{n_shift}_seirh.pdf"),
+        glue(
+          "{parametros$model_seirh}res14/pair_out/trace_seirh.pdf"
+        ),
         fitmodel_seirh, pars_seir
       )
       bitacora$establecer_fecha(

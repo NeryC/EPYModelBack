@@ -5,6 +5,30 @@ import("glue", "glue")
 verificar_que_archivo_existe <- ensurer::ensures_that(file.exists)
 verificar_directorios <- ensurer::ensures_that(dir.exists)
 
+export("data_path")
+data_path <-
+  glue(paste(
+    getwd(),
+    "/public/data/",
+    sep = ""
+  )) %>%
+  ensurer::ensure_that(dir.exists(.) ~ glue("Directorio {.} no encontrado."))
+
+export("raw_data_path")
+raw_data_path <-
+  paste(
+    getwd(),
+    "/public/rawData/",
+    sep = ""
+  )
+export("model_seirh")
+model_seirh <-
+  paste(
+    getwd(),
+    "/src/model_seirh/",
+    sep = ""
+  )
+
 export("experimento")
 experimento <- list(tamano_ventana = 14)
 
@@ -12,35 +36,30 @@ tamano_ventana <- experimento$tamano_ventana
 
 export(".dir_plot")
 .dir_plot <-
-  glue("./res{tamano_ventana}/pair_out/") %>%
-  ensurer::ensure_that(dir.exists(.) ~ glue("Directorio {.} no encontrado."))
-
-export(".dir_file")
-.dir_file <-
-  glue("../../public/data/") %>%
+  glue("{model_seirh}res{tamano_ventana}/pair_out/") %>%
   ensurer::ensure_that(dir.exists(.) ~ glue("Directorio {.} no encontrado."))
 
 export("filepaths")
 filepaths <- list(
-  modelo_SEIR = "./model_seir.stan" %>%
+  modelo_SEIR = glue("{model_seirh}model_seir.stan") %>%
     ensurer::ensure_that(file.exists(.) ~ glue("Archivo {.} no encontrado.")),
-  modelo_SEIRH = "./model_seirh.stan" %>%
+  modelo_SEIRH = glue("{model_seirh}model_seirh.stan") %>%
     ensurer::ensure_that(file.exists(.) ~ glue("Archivo {.} no encontrado.")),
-  modelo_init = "./model_init.stan" %>%
+  modelo_init = glue("{model_seirh}model_init.stan") %>%
     ensurer::ensure_that(file.exists(.) ~ glue("Archivo {.} no encontrado.")),
   datos_diarios =
-    "../../public/data/REGISTRO DIARIO_Datos completos_data.csv" %>%
+    glue("{data_path}REGISTRO DIARIO_Datos completos_data.csv") %>%
       ensurer::ensure_that(file.exists(.) ~ glue("Archivo {.} no encontrado.")),
-  datos_confirmados = "../../public/data/confirmado_diarios_revisado.csv" %>%
+  datos_confirmados = glue("{data_path}confirmado_diarios_revisado.csv") %>%
     ensurer::ensure_that(file.exists(.) ~ glue("Archivo {.} no encontrado.")),
-  datos_poblacion = "../../public/data/DatosPoblacionDpto.csv" %>%
+  datos_poblacion = glue("{data_path}DatosPoblacionDpto.csv") %>%
     ensurer::ensure_that(file.exists(.) ~ glue("Archivo {.} no encontrado.")),
-  datos_fallecidos = "../../public/data/Fallecidos_diarios_revisado.csv" %>%
+  datos_fallecidos = glue("{data_path}Fallecidos_diarios_revisado.csv") %>%
     ensurer::ensure_that(file.exists(.) ~ glue("Archivo {.} no encontrado.")),
-  datos_inmunizados = "../../public/data/Inmunizado_diarios.csv" %>%
+  datos_inmunizados = glue("{data_path}Inmunizado_diarios.csv") %>%
     ensurer::ensure_that(file.exists(.) ~ glue("Archivo {.} no encontrado.")),
-  datos_simulacion = glue("{.dir_file}sim.csv"), # TODO No necesariamente existe
-  datos_probabilidad = glue("{.dir_file}prob.csv")
+  datos_simulacion = glue("{data_path}sim.csv"), # TODO No necesariamente existe
+  datos_probabilidad = glue("{data_path}prob.csv")
 ) # TODO No necesariamente existe
 
 datos_diarios_raw <-
