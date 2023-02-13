@@ -8,11 +8,16 @@ library("roll")
 print(as.Date(as.numeric(as.Date("2020-03-06")) + n_shift, origin = "1970-01-01"))
 # bitacora$importar_datos_desde_linea_n(n_shift)
 
+parametros <- modules::use("./parametros.R")
 
-data <- read.csv("../data/REGISTRO DIARIO_Datos completos_data.csv", sep = ";", fileEncoding = "UTF-8-BOM")
+data <- read.csv(parametros$filepaths$datos_diarios,
+  sep = ";", fileEncoding = "UTF-8-BOM"
+)
 data[is.na(data)] <- 0
 N <- n_poblacion
-data_reportados <- read.csv("../data/confirmado_diarios_revisado.csv", sep = ",")
+data_reportados <- read.csv(parametros$filepaths$datos_confirmados,
+  sep = ","
+)
 data_conf <- data_reportados$Confirmado_diario
 
 factor_subregistro <- data$Cantidad.Pruebas^(-0.914773) * exp(9.00991)
@@ -28,7 +33,7 @@ av_data_conf <- roll_mean(data_conf, width = 14)
 
 data_hosp <- data$Internados.Generales
 data_uci <- data$Internados.UTI
-data_fallecido <- read.csv("../data/Fallecidos_diarios_revisado.csv", sep = ",")
+data_fallecido <- read.csv(parametros$filepaths$datos_fallecidos, sep = ",")
 data_dead <- data_fallecido$Fallecido_diario
 data_import <- data$Confirmados.en.albergues
 date_init <- min(as.Date(data$Fecha, "%d/%m/%Y")) - 1
@@ -36,7 +41,8 @@ date_max <- max(as.Date(data$Fecha, "%d/%m/%Y"))
 data_cumdead <- cumsum(data_dead)
 data_cumconf <- cumsum(data_conf)
 
-dirFile <- "res14/"
+dir_file <- "res14/"
+data_path <- "../../public/data/"
 
 s <- as.numeric(bitacora$obtener_datos()["S"])
 e <- as.numeric(bitacora$obtener_datos()["E"])
@@ -47,8 +53,6 @@ u <- as.numeric(bitacora$obtener_datos()["U"])
 f <- as.numeric(bitacora$obtener_datos()["F"])
 
 y0 <- c(S = s, E = e, I = i, R = r, H = h, U = u, F = f)
-
-# print(bitacora$obtener_datos())
 
 # define parameters
 winsize <- 14
@@ -74,11 +78,11 @@ lamuf_opt <- as.numeric(bitacora$obtener_datos()["lamuf"])
 
 odefun_beta_eq <- function(t, state, parameters) {
   with(as.list(c(state, parameters)), {
-    beta_int <- N / S * gamma
-    dS <- -beta_int * S * I / N
-    dE <- beta_int * S * I / N - alpha * E
-    dI <- alpha * E - gamma * I
-    dR <- gamma * I
+    beta_int <- N / S * gamma # nolint
+    dS <- -beta_int * S * I / N # nolint
+    dE <- beta_int * S * I / N - alpha * E # nolint
+    dI <- alpha * E - gamma * I # nolint
+    dR <- gamma * I # nolint
     list(c(dS, dE, dI, dR))
   }) # end with(as.list ...
 }
@@ -125,18 +129,18 @@ odefun_proy <- function(t, state, parameters) {
     }
     lamho <- (1 - lamhu_int - lamhf_int)
     lamuo <- (1 - lamuf_int)
-    dS <- -beta_int * S * I / N
-    dE <- beta_int * S * I / N - alpha * E
-    dI <- alpha * E - gamma * I
-    dR <- gamma * I
-    dH <- lamih_int * gamma * I - lamhu_int * deltahu * H - lamhf_int * deltahf * H - lamho * deltaho * H
-    dU <- lamhu_int * deltahu * H - lamuf_int * phiuf * U - lamuo * phiuo * U
-    dF <- lamif_int * gamma * I + lamuf_int * phiuf * U + lamhf_int * deltahf * H
+    dS <- -beta_int * S * I / N # nolint
+    dE <- beta_int * S * I / N - alpha * E # nolint
+    dI <- alpha * E - gamma * I # nolint
+    dR <- gamma * I # nolint
+    dH <- lamih_int * gamma * I - lamhu_int * deltahu * H - lamhf_int * deltahf * H - lamho * deltaho * H # nolint
+    dU <- lamhu_int * deltahu * H - lamuf_int * phiuf * U - lamuo * phiuo * U # nolint
+    dF <- lamif_int * gamma * I + lamuf_int * phiuf * U + lamhf_int * deltahf * H # nolint
     list(c(dS, dE, dI, dR, dH, dU, dF))
   }) # end with(as.list ...
 }
 
-simSEIRHUF <- paste("res14/", "sim_SEIRHUF.csv", sep = "")
+simSEIRHUF <- paste("../../public/data/", "sim_SEIRHUF.csv", sep = "")
 sim <- read.csv(simSEIRHUF)
 
 ntime <- length(sim$beta)
@@ -150,16 +154,7 @@ lamhf_history <- sim$lamhf[1:as.numeric(bitacora$obtener_datos()["ndate"])]
 lamuf_history <- sim$lamuf[1:as.numeric(bitacora$obtener_datos()["ndate"])]
 length_hist <- length(beta_history)
 
-
-# lamih_1m <- mean(c(lamih_history[(length_hist-13):length_hist],rep(as.numeric(lamih_opt),winsize)))
-# lamif_1m <- mean(c(lamif_history[(length_hist-13):length_hist],rep(as.numeric(lamif_opt),winsize)))
-# lamhu_1m <- mean(c(lamhu_history[(length_hist-13):length_hist],rep(as.numeric(lamhu_opt),winsize)))
-# lamhf_1m <- mean(c(lamhf_history[(length_hist-13):length_hist],rep(as.numeric(lamhf_opt),winsize)))
-# lamuf_1m <- mean(c(lamuf_history[(length_hist-13):length_hist],rep(as.numeric(lamuf_opt),winsize)))
-# lamhu_1m <- 0.2
-
 factor <- c(factor_subregistro[length_hist:(length_hist + 13)], rep(factor_subregistro[length_hist + 13], 47))
-# lamuf_1m <- 0.5
 
 beta_2w <- mean(c(beta_history[(length_hist - 13):length_hist], rep(as.numeric(beta_opt), winsize)))
 beta_4w <- mean(c(beta_history[(length_hist - 27):length_hist], rep(as.numeric(beta_opt), winsize)))
@@ -247,11 +242,11 @@ colnames(Rnumber) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(dirFile, "Rnumber_", t_cont, ".csv", sep = "")
+filePath <- paste(data_path, "Rnumber", ".csv", sep = "")
 x <- data.frame(date = idate, Rnumber)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
-pdf(paste(dirFile, "ReprodNumber_", t_cont, ".pdf", sep = ""))
+pdf(paste(dir_file, "ReprodNumber", ".pdf", sep = ""))
 matplot(time, beta_2w_fun * 7.0,
   type = "l", col = 2, lty = 1,
   xlab = "days", ylab = "Reproduction Number",
@@ -423,11 +418,11 @@ colnames(proyR) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(dirFile, "proyR_", t_cont, ".csv", sep = "")
+filePath <- paste(data_path, "proyR", ".csv", sep = "")
 x <- data.frame(date = idate, proyR)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
-pdf(paste(dirFile, "plot_proyR_", t_cont, ".pdf", sep = ""))
+pdf(paste(dir_file, "plot_proyR", ".pdf", sep = ""))
 matplot(proyR[, "time"], proyR[, "m2w"],
   type = "l", col = 2, lty = 1,
   xlab = "days", ylab = "projection of daily reported",
@@ -475,11 +470,11 @@ colnames(proyF) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(dirFile, "proyF_", t_cont, ".csv", sep = "")
+filePath <- paste(data_path, "proyF", ".csv", sep = "")
 x <- data.frame(date = idate, proyF)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
-pdf(paste(dirFile, "plot_proyF_", t_cont, ".pdf", sep = ""))
+pdf(paste(dir_file, "plot_proyF", ".pdf", sep = ""))
 matplot(proyF[, "time"], proyF[, "m2w"],
   type = "l", col = 2, lty = 1,
   xlab = "days", ylab = "projection of daily death",
@@ -519,11 +514,11 @@ colnames(proyH) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(dirFile, "proyH_", t_cont, ".csv", sep = "")
+filePath <- paste(data_path, "proyH", ".csv", sep = "")
 x <- data.frame(date = idate, proyH)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
-pdf(paste(dirFile, "plot_proyH_", t_cont, ".pdf", sep = ""))
+pdf(paste(dir_file, "plot_proyH", ".pdf", sep = ""))
 matplot(proyH[, "time"], proyH[, "m2w"],
   type = "l", col = 2, lty = 1,
   xlab = "days", ylab = "projection of hospitalization",
@@ -559,11 +554,11 @@ colnames(proyU) <- c(
   "time", "m2w", "m4w", "q25", "q75", "10p_h", "20p_l",
   "eq", "unc_l", "proj", "unc_h"
 )
-filePath <- paste(dirFile, "proyU_", t_cont, ".csv", sep = "")
+filePath <- paste(data_path, "proyU", ".csv", sep = "")
 x <- data.frame(date = idate, proyU)
 write.table(x, file = filePath, sep = ",", row.names = FALSE)
 
-pdf(paste(dirFile, "plot_proyU_", t_cont, ".pdf", sep = ""))
+pdf(paste(dir_file, "plot_proyU", ".pdf", sep = ""))
 matplot(proyU[, "time"], proyU[, "m2w"],
   type = "l", col = 2, lty = 1,
   xlab = "days", ylab = "projection of UCI",

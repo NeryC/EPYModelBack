@@ -26,6 +26,8 @@ const PORT = 30001;
 app.listen(PORT, () => {
   console.log(`Running on PORT ${PORT}`);
   cronJobs.forEach((cronJob) => {
+    console.log("Inicia Proceso Recurrente");
     cronJob.start();
+    console.log("Fin Del Proceso");
   });
 });

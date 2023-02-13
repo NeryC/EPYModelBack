@@ -1,6 +1,0 @@
-#!/bin/bash
-
-Rscript clean_V.R
-Rscript clean_R.R
-Rscript clean_F.R
-

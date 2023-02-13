@@ -24,7 +24,7 @@ def proyeccionR():
     dfant_sub = dfant_sub[['fecha', 'dailyR_sin_subRegistro']]
     # datos ant
     dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/confirmado_diarios_revisado.csv'), header=0)
-    dfmax = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO_DIARIO_Datos_completos_data.csv'), header=0, sep=';')
+    dfmax = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO DIARIO_Datos completos_data.csv'), header=0, sep=';')
     Cantidad_Max = dfmax['Cantidad Pruebas'].max()
     dfdatos.rename(columns={'Fecha': 'fecha',
                             'Confirmado_diario': 'Reportados'}, inplace=True)
@@ -68,7 +68,7 @@ def proyeccionH():
     dfant['fecha'] = dfant['fecha'].dt.strftime('%Y-%m-%d')
     dfant = dfant[['fecha', 'H']]
     # datos ant
-    dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO_DIARIO_Datos_completos_data.csv'), header=0, sep=';')
+    dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO DIARIO_Datos completos_data.csv'), header=0, sep=';')
     dfdatos.rename(columns={'Fecha': 'fecha',
                             'Internados Generales': 'Hospitalizados'}, inplace=True)
     dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'],format='"%Y-%m-%d"', errors='coerce')
@@ -113,7 +113,7 @@ def proyeccionU():
     dfant['fecha'] = dfant['fecha'].dt.strftime('%Y-%m-%d')
     dfant = dfant[['fecha', 'U']]
     # datos ant
-    dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO_DIARIO_Datos_completos_data.csv'), header=0, sep=';')
+    dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO DIARIO_Datos completos_data.csv'), header=0, sep=';')
     dfdatos.rename(columns={'Fecha': 'fecha',
                             'Internados UTI': 'UTI'}, inplace=True)
     dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'],format='"%Y-%m-%d"', errors='coerce')
@@ -158,7 +158,7 @@ def proyeccionF():
     dfant['fecha'] = dfant['fecha'].dt.strftime('%Y-%m-%d')
     dfant = dfant[['fecha', 'dailyF']]
     # datos ant
-    dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO_DIARIO_Datos_completos_data.csv'), header=0, sep=';')
+    dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO DIARIO_Datos completos_data.csv'), header=0, sep=';')
     Cantidad_Max = dfdatos['Cantidad Pruebas'].max()
     dfdatosF = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/Fallecidos_diarios_revisado.csv'), header=0)
     dfdatosF.rename(columns={'Fecha': 'fecha',
