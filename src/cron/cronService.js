@@ -4,9 +4,9 @@ import path from "path";
 import fs from "fs";
 
 const copyFile = (fileName) => {
-  const fromPath = `${path.resolve()}/public/rawData/`;
-  const toPath = `${path.resolve()}/public/data/`;
-  fs.copyFileSync(`${fromPath}${fileName}`, `${toPath}${fileName}`);
+  const fromPath = `${path.resolve()}/public/rawData/${fileName}`;
+  const toPath = `${path.resolve()}/public/data/${fileName}`;
+  fs.renameSync(fromPath, toPath);
   console.log(`${fileName} se copio a data`);
 };
 const execSyncRscript = (fileName) => {
@@ -20,7 +20,13 @@ const execSyncPython = () => {
   execSync(`python ${path.resolve()}/src/scripts/main.py`, {
     stdio: "inherit",
   });
-  console.log(`${fileName} finalizado`);
+  console.log(`Script finalizado`);
+};
+const execSyncRobot = () => {
+  execSync(`robot ${path.resolve()}/src/robot/covid.robot`, {
+    stdio: "inherit",
+  });
+  console.log(`Descarga finalizada`);
 };
 
 const projections = cron.schedule("1 * * * * *", () => {
@@ -34,6 +40,9 @@ const projections = cron.schedule("1 * * * * *", () => {
 
   console.log("********** Iniciando Actualizacion **********");
   console.log("========= 1 - Descargar Datos =========");
+
+  execSyncRobot();
+
   console.log("========= 2 - Pre Procesamiento =========");
 
   execSyncRscript(clean_V);

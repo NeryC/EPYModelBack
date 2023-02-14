@@ -28,6 +28,5 @@ app.listen(PORT, () => {
   cronJobs.forEach((cronJob) => {
     console.log("Inicia Proceso Recurrente");
     cronJob.start();
-    console.log("Fin Del Proceso");
   });
 });
