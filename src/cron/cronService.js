@@ -45,23 +45,23 @@ const projections = cron.schedule("1 * * * * *", () => {
 
   console.log("========= 2 - Pre Procesamiento =========");
 
-  execSyncRscript(clean_V);
-  execSyncRscript(clean_R);
-  execSyncRscript(clean_F);
+  // execSyncRscript(clean_V);
+  // execSyncRscript(clean_R);
+  // execSyncRscript(clean_F);
 
   console.log("========= 3 - Copiar Archivos =========");
 
-  copyFile(descargarFileName);
-  copyFile(fallecidosFileName);
-  copyFile(registroFileName);
+  // copyFile(descargarFileName);
+  // copyFile(fallecidosFileName);
+  // copyFile(registroFileName);
 
   console.log("========= 4 - test_seirhuf_normal =========");
 
-  execSyncRscript(test_seirhuf_normal);
+  // execSyncRscript(test_seirhuf_normal);
 
   console.log("========= 5 - Generar Archivos de Simulacion =========");
 
-  execSyncPython();
+  // execSyncPython();
 
   console.log("********** Actualizacion Finalizada **********");
 });

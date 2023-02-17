@@ -7,7 +7,7 @@ Library           WebElement.py
 *** Variables ***
 ${BROWSER}        ff
 ${URL}            https://public.tableau.com/app/profile/mspbs/viz/COVID19PY-Registros/Descargardatos
-${DOWNLOAD_DIR}   ${CURDIR}${/}..\\..\\public\\rawData
+${DOWNLOAD_DIR}   ${CURDIR}${/}..${/}..${/}public${/}rawData
 
 
 *** Test Cases ***
