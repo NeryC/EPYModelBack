@@ -11,9 +11,10 @@ datos_fallecidos_raw <-
       "/public/data/FALLECIDOS_Datos completos_data.csv",
       sep = ""
     ),
-    fileEncoding = "UTF-8-BOM",
+    # fileEncoding = "UTF-8",
     sep = ";"
   ) # TODO Try sep=",", else sep=";"
+
 fecha_fallecidos <-
   as.Date(datos_fallecidos_raw$Fecha.Obito, format = "%d/%m/%Y")
 frecuencia_fecha_fallecidos <- table(cut(fecha_fallecidos, breaks = "day"))
@@ -39,9 +40,10 @@ datos_fallecidos_raw <-
       "/public/rawData/FALLECIDOS_Datos completos_data.csv",
       sep = ""
     ),
-    fileEncoding = "UTF-8-BOM",
+    # fileEncoding = "UTF-8",
     sep = ";"
   ) # TODO Try sep=",", else sep=";"
+
 fecha_fallecidos_downloaded <-
   as.Date(datos_fallecidos_raw$Fecha.Obito, format = "%d/%m/%Y")
 frecuencia_fecha_fallecidos <-

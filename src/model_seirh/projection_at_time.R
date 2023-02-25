@@ -16,7 +16,8 @@ root_path <- paste(getwd(),
 parametros <- modules::use(glue("{root_path}parametros.R"))
 
 data <- read.csv(parametros$filepaths$datos_diarios,
-  sep = ";", fileEncoding = "UTF-8-BOM"
+  sep = ";",
+  # fileEncoding = "UTF-8-BOM"
 )
 data[is.na(data)] <- 0
 N <- n_poblacion

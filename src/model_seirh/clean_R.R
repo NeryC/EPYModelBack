@@ -11,7 +11,7 @@ datos_raw <-
       "/public/data/Descargar datos_Datos completos_data.csv",
       sep = ""
     ),
-    fileEncoding = "UTF-8-BOM",
+    # fileEncoding = "UTF-8",
     sep = ";"
   ) # TODO Try sep=",", else sep=";"
 
@@ -39,8 +39,10 @@ datos_raw_downloaded <-
       "/public/rawData/Descargar datos_Datos completos_data.csv",
       sep = ""
     ),
-    fileEncoding = "UTF-8-BOM", sep = ";"
+    # fileEncoding = "UTF-8",
+    sep = ";"
   ) # TODO Try sep=",", else sep=";"
+
 fecha_confirmado_downloaded <-
   as.Date(datos_raw_downloaded$Fecha.Confirmacion, format = "%d/%m/%Y")
 frecuencia_fecha_confirmado <-

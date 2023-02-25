@@ -1,6 +1,6 @@
 import("dplyr", "%>%")
 import("glue", "glue")
-import("R.utils", "countLines")
+import("fpeek")
 
 root_path <- paste(getwd(),
   "/src/model_seirh/",
@@ -456,7 +456,7 @@ if (!file.exists(archivo_de_salida_filepath)) {
 } else {
   print(glue("Encontrado un archivo de bitacora en {archivo_de_salida_filepath}."))
 
-  cantidad_de_lineas <- R.utils::countLines(archivo_de_salida_filepath)
+  cantidad_de_lineas <- peek_count_lines(archivo_de_salida_filepath)
   if (cantidad_de_lineas < 2) {
     print(glue("Bitacora sin datos."))
     ejecutar_model_init <- TRUE

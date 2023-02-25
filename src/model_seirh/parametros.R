@@ -66,8 +66,9 @@ datos_diarios_raw <-
   read.csv(
     filepaths$datos_diarios,
     sep = ";",
-    fileEncoding = "UTF-8"
+    # fileEncoding = "UTF-8"
   ) # TODO Try sep=",", else sep=";"
+
 datos_diarios_raw[is.na(datos_diarios_raw)] <- 0
 
 numero_datos <- nrow(datos_diarios_raw)
@@ -98,8 +99,9 @@ datos_fallecidos_raw <-
   read.csv(
     filepaths$datos_fallecidos,
     sep = ",",
-    fileEncoding = "UTF-8-BOM"
+    # fileEncoding = "UTF-8"
   ) # TODO Try sep=",", else sep=";"
+
 fallecidos <- datos_fallecidos_raw$Fallecido_diario
 numero_x <- nrow(datos_fallecidos_raw)
 
@@ -120,7 +122,11 @@ if (numero_datos > numero_x) {
 }
 fallecidos <- datos_fallecidos_raw$Fallecido_diario
 datos_inmunizados_raw <-
-  read.csv(filepaths$datos_inmunizados, sep = ",", fileEncoding = "UTF-8-BOM")
+  read.csv(filepaths$datos_inmunizados,
+    sep = ",",
+    # fileEncoding = "UTF-8-BOM"
+  )
+
 export("inmunizados_filtrado")
 inmunizados <- datos_inmunizados_raw$Inmunizado_diario
 inmunizados_filtrado <- inmunizados

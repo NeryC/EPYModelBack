@@ -30,62 +30,6 @@ class app_test_case(unittest.TestCase):
         path = 'https://public.tableau.com/app/profile/mspbs/viz/COVID19PY-Registros/Descargardatos'
         self.base_url = path
 
-    def test_download_registrosDiarios(self):
-        driver = self.driver
-        driver.get(self.base_url)
-
-        self.cambiarIdioma(driver)
-
-        print('Seleccionar Registros diarios en el tab')
-        # hay un tiempo hasta que el tab es funcional
-        sleep(60)
-        tabFrame = WebDriverWait(driver, 40).until(
-            EC.element_to_be_clickable((By.XPATH, "//iframe[@allowtransparency='true']"))
-        )
-        driver.switch_to.frame(tabFrame)
-        registroDiarioTab = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="dijit_layout_LayoutContainer_0"]/div/div[2]'))
-        )
-        # hay un tiempo hasta que el tab es funcional
-        sleep(4)
-        registroDiarioTab.click()
-        driver.switch_to.default_content()
-
-        self.descargarArchivo(driver)
-
-        fileName = "/REGISTRO DIARIO_Datos completos_data.csv"
-        sleep(4)
-        print(os.path.exists(str(os.getcwd())+'/public/rawData'+fileName))
-        self.assertTrue( os.path.exists(str(os.getcwd())+'/public/rawData'+fileName), "no existe el archivo "+ fileName)
-
-    def test_download_fallecidos(self):
-        driver = self.driver
-        driver.get(self.base_url)
-
-        self.cambiarIdioma(driver)
-
-        print('Seleccionar fallecidos en el tab')
-        # hay un tiempo hasta que el tab es funcional
-        sleep(60)
-        tabFrame = WebDriverWait(driver, 40).until(
-            EC.element_to_be_clickable((By.XPATH, "//iframe[@allowtransparency='true']"))
-        )
-        driver.switch_to.frame(tabFrame)
-        registroDiarioTab = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, "(//div[@class='dijitTabInnerDiv'])[4]"))
-        )
-        # hay un tiempo hasta que el tab es funcional
-        sleep(4)
-        registroDiarioTab.click()
-        driver.switch_to.default_content()
-
-        self.descargarArchivo(driver)
-
-        fileName = "/FALLECIDOS_Datos completos_data.csv"
-        sleep(4)
-        print(os.path.exists(str(os.getcwd())+'/public/rawData'+fileName))
-        self.assertTrue( os.path.exists(str(os.getcwd())+'/public/rawData'+fileName), "no existe el archivo "+ fileName)
-
     def test_download_datosCompletos(self):
         driver = self.driver
         driver.get(self.base_url)
@@ -140,6 +84,7 @@ class app_test_case(unittest.TestCase):
             EC.presence_of_element_located((By.XPATH, "//div[@id='embedded-viz-wrapper']//iframe"))
         )
         driver.switch_to.frame(downloadFrame)
+        sleep(5)
         downloadFrameOptionData = WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.XPATH, "//div[@id='DownloadDialog-Dialog-Body-Id']//button[2]"))
         )
