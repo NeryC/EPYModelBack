@@ -480,6 +480,6 @@ print(paste("Loop finished..."))
 if (loopbool == 0) {
   n_shift <- bitacora$obtener_datos()$ndate
 }
-source("projection_at_time.R")
+source(glue("{root_path}projection_at_time.R"))
 
 print(paste("projection finished..."))
