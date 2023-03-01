@@ -4,7 +4,7 @@ RUN mkdir -p /user/src/app
 
 WORKDIR /user/src/app
 
-RUN apt-get update && \
+RUN apt-get -y update && \
     apt-get remove -y python && \
     apt-get install -y python3 r-base python3-pip zip unzip vim locales locales-all
 
@@ -13,8 +13,6 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
 RUN pip install --upgrade pip
-
-RUN pip install robotframework robotframework-seleniumlibrary
 
 RUN pip install selenium ipython webdriver-manager pandas
 
@@ -37,6 +35,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+RUN Rscript /user/src/app/src/model_seirh/install_packages.R
 
 EXPOSE 3000
 
