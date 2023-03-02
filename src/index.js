@@ -7,19 +7,19 @@ const app = express();
 app.use(express.static("public"));
 
 app.get("json/projectionr", (req, res) => {
-  res.download("public/proyR.json");
+  res.download("public/results/proyR.json");
 });
 
 app.get("/projectionh", (req, res) => {
-  res.download("public/proyH.json");
+  res.download("public/results/proyH.json");
 });
 
 app.get("/projectionu", (req, res) => {
-  res.download("public/proyU.json");
+  res.download("public/results/proyU.json");
 });
 
 app.get("/projectionf", (req, res) => {
-  res.download("public/proyF.json");
+  res.download("public/results/proyF.json");
 });
 
 const PORT = 30001;
