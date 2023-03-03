@@ -36,7 +36,7 @@ RUN npm install
 
 COPY . .
 
-RUN Rscript /user/src/app/src/model_seirh/install_packages.R
+# RUN Rscript /user/src/app/src/model_seirh/install_packages.R
 
 EXPOSE 3000
 

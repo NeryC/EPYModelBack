@@ -11,9 +11,9 @@ const mainFlow = () => {
 
   console.log("========= 2 - Pre Procesamiento =========");
 
-  execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_V);
-  execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_R);
-  execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_F);
+  // execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_V);
+  // execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_R);
+  // execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_F);
 
   console.log("========= 3 - Copiar Archivos =========");
 
@@ -23,7 +23,7 @@ const mainFlow = () => {
 
   console.log("========= 4 - test_seirhuf_normal =========");
 
-  execSyncScript(pathNames.R_SCRIPTS, fileNames.TEST_SEIRHUF);
+  // execSyncScript(pathNames.R_SCRIPTS, fileNames.TEST_SEIRHUF);
 
   console.log("========= 5 - Generar Archivos de Simulacion =========");
 

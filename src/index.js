@@ -7,18 +7,22 @@ const app = express();
 app.use(express.static("public"));
 
 app.get("json/projectionr", (req, res) => {
+  console.log("json/projectionr");
   res.download("public/results/proyR.json");
 });
 
 app.get("/projectionh", (req, res) => {
+  console.log("/projectionf");
   res.download("public/results/proyH.json");
 });
 
 app.get("/projectionu", (req, res) => {
+  console.log("/projectionu");
   res.download("public/results/proyU.json");
 });
 
 app.get("/projectionf", (req, res) => {
+  console.log("/projectionf");
   res.download("public/results/proyF.json");
 });
 
