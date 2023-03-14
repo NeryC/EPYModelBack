@@ -38,6 +38,6 @@ COPY . .
 
 RUN Rscript /user/src/app/src/model_seirh/install_packages.R
 
-EXPOSE 30001
+EXPOSE 3001
 
 CMD [ "npm", "start" ]
