@@ -6,23 +6,23 @@ const app = express();
 
 app.use(express.static("public"));
 
-app.get("json/projectionr", (req, res) => {
-  console.log("json/projectionr");
+app.get("/projection-r", (req, res) => {
+  console.log("/projection-r");
   res.download("public/results/proyR.json");
 });
 
-app.get("/projectionh", (req, res) => {
-  console.log("/projectionf");
+app.get("/projection-h", (req, res) => {
+  console.log("/projection-h");
   res.download("public/results/proyH.json");
 });
 
-app.get("/projectionu", (req, res) => {
-  console.log("/projectionu");
+app.get("/projection-u", (req, res) => {
+  console.log("/projection-u");
   res.download("public/results/proyU.json");
 });
 
-app.get("/projectionf", (req, res) => {
-  console.log("/projectionf");
+app.get("/projection-f", (req, res) => {
+  console.log("/projection-f");
   res.download("public/results/proyF.json");
 });
 

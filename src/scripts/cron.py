@@ -30,8 +30,6 @@ def proyeccionR():
                             'Confirmado_diario': 'Reportados'}, inplace=True)
     dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'], errors='coerce')
     dfdatos['fecha'] = dfdatos['fecha'].dt.strftime('%Y-%m-%d')
-    dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'], errors='coerce')
-    dfdatos['fecha'] = dfdatos['fecha'].dt.strftime('%Y-%m-%d')
     dfdatos = dfdatos[['fecha', 'Reportados']]
     # ajustes de los datasets
     df2.rename(columns={'date': 'fecha'}, inplace=True)
@@ -71,9 +69,7 @@ def proyeccionH():
     dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO DIARIO_Datos completos_data.csv'), header=0, sep=';')
     dfdatos.rename(columns={'Fecha': 'fecha',
                             'Internados Generales': 'Hospitalizados'}, inplace=True)
-    dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'],format='"%Y-%m-%d"', errors='coerce')
-    dfdatos['fecha'] = dfdatos['fecha'].dt.strftime('%d-%m-%Y')
-    dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'],format='"%Y-%m-%d"', errors='coerce')
+    dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'], errors='coerce')
     dfdatos['fecha'] = dfdatos['fecha'].dt.strftime('%Y-%m-%d')
     dfdatos = dfdatos[['fecha', 'Hospitalizados']]
     # ajustes de los datasets
@@ -116,9 +112,7 @@ def proyeccionU():
     dfdatos = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/REGISTRO DIARIO_Datos completos_data.csv'), header=0, sep=';')
     dfdatos.rename(columns={'Fecha': 'fecha',
                             'Internados UTI': 'UTI'}, inplace=True)
-    dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'],format='"%Y-%m-%d"', errors='coerce')
-    dfdatos['fecha'] = dfdatos['fecha'].dt.strftime('%d-%m-%Y')
-    dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'],format='"%Y-%m-%d"', errors='coerce')
+    dfdatos['fecha'] = pd.to_datetime(dfdatos['fecha'], errors='coerce')
     dfdatos['fecha'] = dfdatos['fecha'].dt.strftime('%Y-%m-%d')
     dfdatos = dfdatos[['fecha', 'UTI']]
     # ajustes de los datasets
@@ -165,8 +159,6 @@ def proyeccionF():
                              'Fallecido_diario': 'Fallecidos'}, inplace=True)
     dfdatosF['fecha'] = pd.to_datetime(dfdatosF['fecha'], errors='coerce')
     dfdatosF['fecha'] = dfdatosF['fecha'].dt.strftime('%Y-%m-%d')
-    # dfdatosF['fecha'] = dfdatosF['fecha'].dt.strftime('%d-%m-%Y')
-    dfdatosF['fecha'] = pd.to_datetime(dfdatosF['fecha'], errors='coerce')
     dfdatosF = dfdatosF[['fecha', 'Fallecidos']]
     # ajustes de los datasets
     df2.rename(columns={'date': 'fecha'}, inplace=True)
@@ -183,8 +175,8 @@ def proyeccionF():
     df.insert(8, 'q75', df2['q75'])
     df.insert(9, 'X10p', df2['X10p_h'])
     df.insert(10, 'X20p', df2['X20p_l'])
-    df = pd.merge(df, dfant, on='fecha', how='outer')
     dfdatosF['fecha'] = dfdatosF['fecha'].astype(str).tolist()
+    df = pd.merge(df, dfant, on='fecha', how='outer')
     df = pd.merge(df, dfdatosF, on='fecha', how='outer')
     df.insert(13, 'CapacidadMax', Cantidad_Max)
     df.insert(14, 'FechaCapacidadMax', dfdatosF['fecha'].max())
