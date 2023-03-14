@@ -26,7 +26,7 @@ app.get("/projection-f", (req, res) => {
   res.download("public/results/proyF.json");
 });
 
-const PORT = 30001;
+const PORT = 3001;
 
 app.listen(PORT, () => {
   console.log(`Running on PORT ${PORT}`);
