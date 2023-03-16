@@ -26,6 +26,26 @@ app.get("/projection-f", (req, res) => {
   res.download("public/results/proyF.json");
 });
 
+app.get("/get-projection-r", (req, res) => {
+  console.log("/get-projection-r");
+  res.download("public/results/proyR.csv");
+});
+
+app.get("/get-projection-h", (req, res) => {
+  console.log("/get-projection-h");
+  res.download("public/results/proyH.csv");
+});
+
+app.get("/get-projection-u", (req, res) => {
+  console.log("/get-projection-u");
+  res.download("public/results/proyU.csv");
+});
+
+app.get("/get-projection-f", (req, res) => {
+  console.log("/get-projection-f");
+  res.download("public/results/proyF.csv");
+});
+
 const PORT = 3001;
 
 app.listen(PORT, () => {

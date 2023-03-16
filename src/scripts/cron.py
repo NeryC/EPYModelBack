@@ -51,7 +51,8 @@ def proyeccionR():
     df = pd.merge(df, dfdatos, on='fecha', how='outer')
     df.insert(13, 'CapacidadMax', Cantidad_Max)
     df.insert(14, 'FechaCapacidadMax', dfdatos['fecha'].max())
-    result = df.to_json(os.path.join(ROOT_DIR, 'public/results/proyR.json'), orient="records")
+    df.to_json(os.path.join(ROOT_DIR, 'public/results/proyR.json'), orient="records")
+    df.to_csv(os.path.join(ROOT_DIR, 'public/results/proyR.csv'),index=False)
     print(f'Proyeccion R')
     return
 
@@ -92,14 +93,13 @@ def proyeccionH():
     df = pd.merge(df, dfdatos, on='fecha', how='outer')
     df.insert(13, 'CapacidadMax', 1319)
     df.insert(14, 'FechaCapacidadMax', '2020-12-31')
-    result = df.to_json(os.path.join(ROOT_DIR, 'public/results/proyH.json'), orient="records")
+    df.to_json(os.path.join(ROOT_DIR, 'public/results/proyH.json'), orient="records")
+    df.to_csv(os.path.join(ROOT_DIR, 'public/results/proyH.csv'), index=False)
     print(f'Proyeccion H')
     return
 
 
 def proyeccionU():
-    ##fecha inicial
-    fecha = dt.date(2020, 3, 6)
     # dataset proyección
     df2 = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/proyU.csv'), header=0)
     # proyecciones anteriores
@@ -135,14 +135,13 @@ def proyeccionU():
     df = pd.merge(df, dfdatos, on='fecha', how='outer')
     df.insert(13, 'CapacidadMax', 461)
     df.insert(14, 'FechaCapacidadMax', '2020-12-31')
-    result = df.to_json(os.path.join(ROOT_DIR, 'public/results/proyU.json'), orient="records")
+    df.to_json(os.path.join(ROOT_DIR, 'public/results/proyU.json'), orient="records")
+    df.to_csv(os.path.join(ROOT_DIR, 'public/results/proyU.csv'), index=False)
     print(f'Proyeccion U')
     return
 
 
 def proyeccionF():
-    ##fecha inicial
-    fecha = dt.date(2020, 3, 6)
     # dataset proyección
     df2 = pd.read_csv(os.path.join(ROOT_DIR, 'public/data/proyF.csv'), header=0)
     # proyecciones anteriores
@@ -180,6 +179,7 @@ def proyeccionF():
     df = pd.merge(df, dfdatosF, on='fecha', how='outer')
     df.insert(13, 'CapacidadMax', Cantidad_Max)
     df.insert(14, 'FechaCapacidadMax', dfdatosF['fecha'].max())
-    result = df.to_json(os.path.join(ROOT_DIR, 'public/results/proyF.json'), orient="records")
+    df.to_json(os.path.join(ROOT_DIR, 'public/results/proyF.json'), orient="records")
+    df.to_csv(os.path.join(ROOT_DIR, 'public/results/proyF.csv'), index=False)
     print(f'Proyeccion F')
     return
