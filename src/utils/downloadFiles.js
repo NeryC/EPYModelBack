@@ -1,5 +1,5 @@
 import fs from "fs";
-import getScript from "./getScript.js";
+import { getPath } from "./getScript.js";
 import execSyncScript from "./execSyncScript.js";
 import { pathNames, fileNames } from "./const.js";
 
@@ -10,7 +10,7 @@ const downloadFiles = () => {
 };
 
 const execDownload = (csvName, pyScript) => {
-  const filePath = getScript(pathNames.RAW_FILES, csvName);
+  const filePath = getPath(pathNames.RAW_FILES, csvName);
   do {
     console.log(`Intentar descargar ${csvName}`);
     try {

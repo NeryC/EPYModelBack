@@ -1,38 +1,46 @@
 import { pathNames } from "./const.js";
 import path from "path";
 
-const getScript = (fileType, fileName) => {
-  switch (fileType) {
-    case pathNames.PY_SCRIPTS:
-      console.log(path.join(path.resolve(), pathNames.PY_SCRIPTS, fileName));
-      return `python3 ${path.join(
-        path.resolve(),
-        pathNames.PY_SCRIPTS,
-        fileName
-      )}`;
+export const getScript = (scriptType, fileName) => {
+  const commands = {
+    [pathNames.PY_SCRIPTS]: `python ${path.join(
+      path.resolve(),
+      pathNames.PY_SCRIPTS,
+      fileName
+    )}`,
+    [pathNames.R_SCRIPTS]: `Rscript ${path.join(
+      path.resolve(),
+      pathNames.R_SCRIPTS,
+      fileName
+    )}`,
+    [pathNames.PY_DOWNLOAD_SCRIPTS]: `python ${path.join(
+      path.resolve(),
+      pathNames.PY_DOWNLOAD_SCRIPTS,
+      fileName
+    )}`,
+  };
 
-    case pathNames.R_SCRIPTS:
-      return `Rscript ${path.resolve()}${pathNames.R_SCRIPTS}${fileName}`;
-
-    case pathNames.PY_DOWNLOAD_SCRIPTS:
-      console.log(
-        path.join(path.resolve(), pathNames.PY_DOWNLOAD_SCRIPTS, fileName)
-      );
-      return `python3 ${path.join(
-        path.resolve(),
-        pathNames.PY_DOWNLOAD_SCRIPTS,
-        fileName
-      )}`;
-
-    case pathNames.RAW_FILES:
-      return `${path.resolve()}${pathNames.RAW_FILES}${fileName}`;
-
-    case pathNames.DATA_FILES:
-      return `${path.resolve()}${pathNames.DATA_FILES}${fileName}`;
-
-    default:
-      return "";
-  }
+  return commands[scriptType] ?? "";
 };
 
-export default getScript;
+export const getPath = (pathType, file) => {
+  const fileName = file || "";
+  const commands = {
+    [pathNames.PY_SCRIPTS]: `${path.join(
+      path.resolve(),
+      pathNames.PY_SCRIPTS,
+      fileName
+    )}`,
+    [pathNames.RAW_FILES]: path.join(
+      path.resolve(),
+      pathNames.RAW_FILES,
+      fileName
+    ),
+    [pathNames.DATA_FILES]: path.join(
+      path.resolve(),
+      pathNames.DATA_FILES,
+      fileName
+    ),
+  };
+  return commands[pathType] ?? "";
+};

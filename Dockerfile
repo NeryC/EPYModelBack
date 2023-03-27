@@ -14,7 +14,7 @@ ENV LANGUAGE en_US.UTF-8
 
 RUN pip install --upgrade pip
 
-RUN pip install selenium ipython webdriver-manager pandas
+RUN pip install selenium ipython webdriver-manager pandas scipy
 
 # Install chromedriver
 RUN wget -N https://chromedriver.storage.googleapis.com/111.0.5563.19/chromedriver_linux64.zip -P ~/

@@ -1,15 +1,13 @@
 import { execSync } from "child_process";
-import getScript from "./getScript.js";
+import { getScript } from "./getScript.js";
 
-const execSyncScript = (fileType, fileName) => {
-  let script = getScript(fileType, fileName);
+// execSyncScript(pathNames.PY_DOWNLOAD_SCRIPTS, pyScript);
+const execSyncScript = (scriptType, fileName) => {
+  const script = getScript(scriptType, fileName);
 
   if (!script) return console.log("no existe el script");
-
   try {
-    execSync(script, {
-      stdio: "inherit",
-    });
+    execSync(script);
     console.log(`${fileName} finalizado`);
   } catch (error) {
     console.log(error);

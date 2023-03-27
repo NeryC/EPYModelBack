@@ -1,6 +1,7 @@
 import express from "express";
 import cronJobs from "./cron/cronService.js";
 import mainFlow from "./utils/mainFlow.js";
+import { getSimulation } from "./utils/Simulation/getFirstSimulation.js";
 
 const app = express();
 
@@ -44,6 +45,22 @@ app.get("/get-projection-u", (req, res) => {
 app.get("/get-projection-f", (req, res) => {
   console.log("/get-projection-f");
   res.download("public/results/proyF.csv");
+});
+
+app.get("/get-simulation", async (req, res) => {
+  console.log("/get-simulation");
+  const responseData = await getSimulation(
+    req.query.Rt,
+    req.query.UCI_threshold,
+    req.query.V_filtered,
+    req.query.lambda_I_to_H
+  );
+  res.json(responseData);
+});
+
+app.get("/get-first-simulation", (req, res) => {
+  console.log("/get-first-simulation");
+  res.download("public/results/simulation.json");
 });
 
 const PORT = 3001;
