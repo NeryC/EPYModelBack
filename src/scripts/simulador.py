@@ -39,6 +39,9 @@ def odes(x, t, Rt, UCI_threshold, V_filtered, lambda_I_to_H, lambda_H_to_O, lamb
         lambda_U_to_F = 0.45
 
     # definimos beta
+    if(math.floor(t/30) > len(Rt)-1):
+        t=len(Rt)-1
+
     beta = (Rt[math.floor(t/30)] * gamma * N) / S
 
     # definimos cada ODE
@@ -60,45 +63,64 @@ def main(params):
     V_filtered = json.loads(params[3])
     lambda_I_to_H = json.loads(params[4])
     firstSimulation = json.loads(params[5])
-    num_de_dias = (len(Rt)*30)-1
+    num_de_dias = (len(Rt)*30)
 
     lambda_H_to_O = 1 - lambda_H_to_U - lambda_H_to_F
     lambda_U_to_O = 1 - lambda_U_to_F
     lambda_I_to_O = 1 - lambda_I_to_H - lambda_I_to_F
         
     # declaramos un vector de tiempo para cada uno de los dias
-    t = np.arange(0, num_de_dias, 0.1)
+    t = np.arange(0, num_de_dias)
     # usamos odeint para resolver las ecuaciones
     x = odeint(odes, x0, t, args=(Rt, UCI_threshold, V_filtered, lambda_I_to_H, lambda_H_to_O, lambda_U_to_O, lambda_I_to_O))
 
-    headers = ['day', 'suceptible', 'exposed', 'infectious', 'cumulative', 'hospitalized', 'UCI', 'cumulative_deaths', 'inmune']
-    all_rows = []
-    # para generar el csv output, extraemos de la matriz solamente los valores de las funciones con input discreto
-    # es decir, solo nos importan los numeros de los casos en dias concretos y no entre medias
+    # Creamos un diccionario vacío para cada variable
+    susceptible_dict = []
+    exposed_dict = []
+    infectious_dict = []
+    cumulative_dict = []
+    hospitalized_dict = []
+    uci_dict = []
+    cumulative_deaths_dict = []
+    immune_dict = []
+
+    # Iteramos sobre t y guardamos los valores de cada variable en su respectivo diccionario
     old_int = np.float64(-1)
     for i in t:
         new_int = np.floor(i)
         if new_int != old_int:
-            integer_i = i.astype(int)
-            current_row = [integer_i, x[integer_i, 0], x[integer_i, 1], x[integer_i, 2], x[integer_i, 3], x[integer_i, 4], x[integer_i, 5], x[integer_i, 6], x[integer_i, 7]]
-            all_rows.append(current_row)
+            integer_i = int(i)
+            susceptible_dict.append({"day":integer_i,"value":x[integer_i, 0]})
+            exposed_dict.append({"day":integer_i,"value":x[integer_i, 1]})
+            infectious_dict.append({"day":integer_i,"value":x[integer_i, 2]})
+            cumulative_dict.append({"day":integer_i,"value":x[integer_i, 3]})
+            hospitalized_dict.append({"day":integer_i,"value":x[integer_i, 4]})
+            uci_dict.append({"day":integer_i,"value":x[integer_i, 5]})
+            cumulative_deaths_dict.append({"day":integer_i,"value":x[integer_i, 6]})
+            immune_dict.append({"day":integer_i,"value":x[integer_i, 7]})
             old_int = new_int
 
-    # Convert headers and all_rows into an array of objects with key-value pairs
-    data = []
-    for row in all_rows:
-        obj = {}
-        for i in range(len(headers)):
-            obj[headers[i]] = str(row[i])
-        data.append(obj)
-    # Convert array of objects into JSON
-    json_data = json.dumps(data)
+    # Creamos un diccionario final con todas las variables
+    output_dict = {
+        "susceptible": susceptible_dict,
+        "exposed": exposed_dict,
+        "infectious": infectious_dict,
+        "cumulative": cumulative_dict,
+        "hospitalized": hospitalized_dict,
+        "uci": uci_dict,
+        "cumulative_deaths": cumulative_deaths_dict,
+        "immune": immune_dict
+    }
+    # print(json.dumps(output_dict))
+    # Imprimimos el JSON resultante
+    result = json.dumps(output_dict)
+
     if firstSimulation:
         # Save JSON file
         with open(os.path.join(ROOT_DIR, 'public/results/simulation.json'), mode='w') as jsonfile:
-            jsonfile.write(json_data)
+            jsonfile.write(result)
     else:
-        print(json_data)
+        print(result)
 
 
 

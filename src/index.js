@@ -2,10 +2,12 @@ import express from "express";
 import cronJobs from "./cron/cronService.js";
 import mainFlow from "./utils/mainFlow.js";
 import { getSimulation } from "./utils/Simulation/getFirstSimulation.js";
+import cors from "cors";
 
 const app = express();
 
 app.use(express.static("public"));
+app.use(cors());
 
 app.get("/projection-r", (req, res) => {
   console.log("/projection-r");
@@ -49,6 +51,7 @@ app.get("/get-projection-f", (req, res) => {
 
 app.get("/get-simulation", async (req, res) => {
   console.log("/get-simulation");
+  console.log(req.query);
   const responseData = await getSimulation(
     req.query.Rt,
     req.query.UCI_threshold,
