@@ -24,7 +24,7 @@ const mainFlow = () => {
 
   console.log("========= 4 - test_seirhuf_normal =========");
 
-  // execSyncScript(pathNames.R_SCRIPTS, fileNames.TEST_SEIRHUF);
+  execSyncScript(pathNames.R_SCRIPTS, fileNames.TEST_SEIRHUF);
 
   console.log("========= 5 - Generar Archivos de Gaficos =========");
 

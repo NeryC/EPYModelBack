@@ -51,7 +51,6 @@ app.get("/get-projection-f", (req, res) => {
 
 app.get("/get-simulation", async (req, res) => {
   console.log("/get-simulation");
-  console.log(req.query);
   const responseData = await getSimulation(
     req.query.Rt,
     req.query.UCI_threshold,
