@@ -1,38 +1,37 @@
-import { fileNames, pathNames } from "./const.js";
-import execSyncScript from "./execSyncScript.js";
-import downloadFiles from "./downloadFiles.js";
-import moveFile from "./moveFile.js";
-import { getFirstSimulation } from "./Simulation/getFirstSimulation.js";
+import {
+  downloadRawData,
+  execPreProcessing,
+  moveFiles,
+  execTest_seirhuf_normal,
+  generateGraphicFiles,
+  generateSimulationFiles,
+} from "./steps.js";
 
 const mainFlow = () => {
   console.log("********** Iniciando Actualizacion **********");
   console.log("========= 1 - Descargar Datos =========");
 
-  downloadFiles();
+  downloadRawData();
 
   console.log("========= 2 - Pre Procesamiento =========");
 
-  execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_V);
-  execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_R);
-  execSyncScript(pathNames.R_SCRIPTS, fileNames.CLEAN_F);
+  execPreProcessing();
 
-  console.log("========= 3 - Copiar Archivos =========");
+  console.log("========= 3 - Mover Archivos =========");
 
-  moveFile(fileNames.DATOS_CSV);
-  moveFile(fileNames.FALLECIDOS_CSV);
-  moveFile(fileNames.REGISTROS_CSV);
+  moveFiles();
 
   console.log("========= 4 - test_seirhuf_normal =========");
 
-  execSyncScript(pathNames.R_SCRIPTS, fileNames.TEST_SEIRHUF);
+  execTest_seirhuf_normal();
 
   console.log("========= 5 - Generar Archivos de Gaficos =========");
 
-  execSyncScript(pathNames.PY_SCRIPTS, fileNames.MAIN_PY);
+  generateGraphicFiles();
 
   console.log("========= 6 - Generar Archivos de Simulacion =========");
 
-  getFirstSimulation();
+  generateSimulationFiles();
 
   console.log("********** Actualizacion Finalizada **********");
 };

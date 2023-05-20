@@ -111,7 +111,6 @@ def main(params):
         "cumulative_deaths": cumulative_deaths_dict,
         "immune": immune_dict
     }
-    # print(json.dumps(output_dict))
     # Imprimimos el JSON resultante
     result = json.dumps(output_dict)
 

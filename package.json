@@ -6,7 +6,14 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "start-main-flow": "node ./packageScripts/runMainFlow.js",
+    "download-raw-data": "node ./packageScripts/runDownloadRawData.js",
+    "pre-processing": "node ./packageScripts/runExecPreProcessing.js",
+    "test_seirhuf": "node ./packageScripts/runExecTest_seirhuf.js",
+    "generate-graphic": "node ./packageScripts/runGenerateGraphicFiles.js",
+    "generate-simulation": "node ./packageScripts/runGenerateSimulationFiles.js",
+    "get-simulation": "python ./src/scripts/simulador.py"
   },
   "keywords": [],
   "author": "",
