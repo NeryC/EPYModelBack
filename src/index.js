@@ -1,6 +1,6 @@
 import express from "express";
-import cronJobs from "./cron/cronService.js";
-import mainFlow from "./utils/mainFlow.js";
+// import cronJobs from "./cron/cronService.js";
+// import mainFlow from "./utils/mainFlow.js";
 import { getSimulation } from "./utils/Simulation/getFirstSimulation.js";
 import cors from "cors";
 
@@ -73,8 +73,8 @@ app.listen(PORT, () => {
   // en caso de necesitar un test rapido, descomentar la siguiente linea
   // mainFlow();
 
-  cronJobs.forEach((cronJob) => {
-    console.log("Inicia Proceso Recurrente");
-    cronJob.start();
-  });
+  // cronJobs.forEach((cronJob) => {
+  //   console.log("Inicia Proceso Recurrente");
+  //   cronJob.start();
+  // });
 });
