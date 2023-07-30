@@ -103,13 +103,6 @@ if (bitacora$ejecutar_model_init) {
 
   seed <- get_seed(fitmodel_init)
 
-  reportes$graficar_pares_entre_parametros_en_pdf(
-    "res14/pair_out/pairs_init.pdf", fitmodel_init, pars_init
-  )
-  reportes$graficar_parametros_vs_iteraciones_en_pdf(
-    "res14/pair_out/trace_init.pdf", fitmodel_init, pars_init
-  )
-
   bitacora$establecer_fecha(parametros$fecha_inicio)
   bitacora$establecer_ndate(parametros$id_inicio_sim)
   bitacora$cargar_fitmodel_seir(

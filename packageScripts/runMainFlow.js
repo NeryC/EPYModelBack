@@ -10,7 +10,7 @@ import {
 console.log("********** Iniciando Main Flow **********");
 console.log("========= 1 - Descargar Datos =========");
 
-downloadRawData();
+// downloadRawData();
 
 console.log("========= 2 - Pre Procesamiento =========");
 

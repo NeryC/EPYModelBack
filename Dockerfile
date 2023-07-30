@@ -12,7 +12,7 @@ ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
-RUN pip install --upgrade pip
+RUN pip install pip==22.3.1 --break-system-packages
 
 RUN pip install selenium ipython webdriver-manager pandas scipy
 
