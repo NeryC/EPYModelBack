@@ -2,11 +2,12 @@
   "name": "epy-model-back",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js",
+    "build": "tsc",
+    "dev": "tsc --watch & nodemon dist/index.js",
+    "start": "node dist/index.js",
     "start-main-flow": "node ./packageScripts/runMainFlow.js",
     "download-raw-data": "node ./packageScripts/runDownloadRawData.js",
     "pre-processing": "node ./packageScripts/runExecPreProcessing.js",
@@ -25,5 +26,13 @@
     "express": "^4.18.2",
     "node-cron": "^3.0.2",
     "python-shell": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/node": "^20.19.2",
+    "@types/node-cron": "^3.0.11",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.8.3"
   }
 }
