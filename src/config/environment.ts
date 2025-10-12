@@ -6,6 +6,10 @@ import { EnvironmentConfig } from "../types/index.js";
 export const environment: EnvironmentConfig = {
   PORT: parseInt(process.env.PORT || "3001", 10),
   NODE_ENV: process.env.NODE_ENV || "development",
+  // optional CORS allow list, comma-separated
+  CORS_ORIGIN: process.env.CORS_ORIGIN || "*",
+  // optional redis url for BullMQ
+  REDIS_URL: process.env.REDIS_URL || "",
 };
 
 /**

@@ -2,6 +2,8 @@
 export interface EnvironmentConfig {
   PORT: number;
   NODE_ENV: string;
+  CORS_ORIGIN?: string;
+  REDIS_URL?: string;
 }
 
 // Simulation parameters

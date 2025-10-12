@@ -1,41 +1,31 @@
-import { Request, Response } from "express";
-import { AppError, asyncHandler } from "../utils/errorHandler.js";
-import { ProjectionService } from "../services/projectionService.js";
+import { Request, Response } from 'express';
+import { AppError, asyncHandler } from '../utils/errorHandler.js';
+import { executeGetProjectionsUseCase } from '../application/projections/get-projections.js';
 
 export class ProjectionController {
-  private projectionService: ProjectionService;
-
-  constructor() {
-    this.projectionService = new ProjectionService();
-  }
-
   /**
-   * Get all projections with specified format
+   * Get all projections in the specified format
    */
-  getProjections = asyncHandler(
-    async (req: Request, res: Response): Promise<void> => {
-      const format = (req.query.format as "json" | "csv") || "json";
+  getProjections = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    console.log('/projections');
 
-      console.log(`/projections?format=${format}`);
+    const { format } = req.query;
 
-      try {
-        const projections = await this.projectionService.getAllProjections(
-          format
-        );
+    try {
+      const responseData = await executeGetProjectionsUseCase({
+        format: (format as 'json' | 'csv') || 'json',
+      });
 
-        // Set appropriate headers
-        res.setHeader("Content-Type", "application/json");
-        res.setHeader("Cache-Control", "public, max-age=86400"); // Cache for 1 day
-
-        res.json({
-          success: true,
-          format,
-          timestamp: new Date().toISOString(),
-          projections,
-        });
-      } catch (error) {
-        throw new AppError(`Failed to read projection files: ${error}`, 500);
-      }
+      res.json({
+        success: true,
+        data: responseData,
+        message: 'Projections retrieved successfully',
+      });
+    } catch (error) {
+      throw new AppError(
+        `Failed to get projections: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        500,
+      );
     }
-  );
+  });
 }

@@ -7,7 +7,7 @@ import {
 import { SimulationParams } from "../types/index.js";
 
 export class SimulationService {
-  private readonly SIMULATION_FILE_PATH = "public/results/simulation.json";
+  private readonly SIMULATION_FILE_PATH = "storage/results/simulation.json";
 
   /**
    * Execute simulation with custom parameters
@@ -54,17 +54,40 @@ export class SimulationService {
    */
   async getSimulationFile(): Promise<{ filePath: string; fileName: string }> {
     try {
-      // Check if file exists
-      await fs.access(this.SIMULATION_FILE_PATH);
+      // Prefer private storage; fallback to legacy public path
+      try {
+        await fs.access(this.SIMULATION_FILE_PATH);
+      } catch {
+        const legacy = "public/results/simulation.json";
+        await fs.access(legacy);
+        return { filePath: legacy, fileName: path.basename(legacy) };
+      }
 
       const fileName = path.basename(this.SIMULATION_FILE_PATH);
 
-      return {
-        filePath: this.SIMULATION_FILE_PATH,
-        fileName,
-      };
+      return { filePath: this.SIMULATION_FILE_PATH, fileName };
     } catch (error) {
       throw new Error("Simulation file not found");
+    }
+  }
+
+  /**
+   * Get first simulation data as JSON
+   */
+  async getFirstSimulationData(): Promise<any> {
+    try {
+      // First try to get data from storage file
+      try {
+        const data = await fs.readFile(this.SIMULATION_FILE_PATH, 'utf-8');
+        return JSON.parse(data);
+      } catch {
+        // Fallback to legacy public path
+        const legacy = "public/results/simulation.json";
+        const data = await fs.readFile(legacy, 'utf-8');
+        return JSON.parse(data);
+      }
+    } catch (error) {
+      throw new Error("Simulation data file not found or invalid JSON");
     }
   }
 
