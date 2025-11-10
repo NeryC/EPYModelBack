@@ -35,8 +35,22 @@ export const SimulationParamsSchema = z.object({
 });
 
 // Query parameter schema for GET requests
+// Note: Query parameters come as strings, so we validate them as strings
+// The controller will parse them to the correct types
 export const SimulationQuerySchema = z.object({
-  Rt: z.string(),
+  Rt: z.string().refine(
+    (val) => {
+      try {
+        const parsed = JSON.parse(val);
+        return Array.isArray(parsed) && parsed.every((item) => typeof item === 'number');
+      } catch {
+        return false;
+      }
+    },
+    {
+      message: 'Rt must be a valid JSON array of numbers',
+    },
+  ),
   UCI_threshold: z.string().regex(/^\d+(\.\d+)?$/, 'UCI_threshold must be a valid number'),
   V_filtered: z.string().regex(/^\d+(\.\d+)?$/, 'V_filtered must be a valid number'),
   lambda_I_to_H: z.string().regex(/^\d+(\.\d+)?$/, 'lambda_I_to_H must be a valid number'),

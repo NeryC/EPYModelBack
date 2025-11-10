@@ -13,14 +13,14 @@ export const downloadFiles = (): void => {
 const execDownload = (csvName: string, pyScript: string): void => {
   const filePath = getPath(pathNames.RAW_FILES, csvName);
   do {
-    logger.info(`Intentar descargar ${csvName}`);
+    logger.info(`Attempting to download ${csvName}`);
     try {
       execSyncScript(pathNames.PY_DOWNLOAD_SCRIPTS, pyScript);
     } catch (error) {
-      logger.error(`Fallo la descarga de ${csvName}`);
+      logger.error(`Download failed for ${csvName}`);
     }
     logger.info(filePath);
   } while (!fs.existsSync(filePath));
-  logger.info(`${csvName} descargado`);
+  logger.info(`${csvName} downloaded`);
 };
 

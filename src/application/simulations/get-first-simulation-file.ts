@@ -1,20 +1,26 @@
-import fs from 'fs/promises';
-import path from 'path';
+/**
+ * Application Layer - Get First Simulation File Use Case
+ * 
+ * This use case executes the first simulation with default parameters
+ * and returns the file path for download.
+ */
+
+import { ISimulationRepository } from '../../domain/simulation.js';
 import { getFirstSimulation } from '../../infrastructure/processes/simulation-adapter.js';
 
-const LEGACY_FILE = 'public/results/simulation.json';
-const STORAGE_FILE = 'storage/results/simulation.json';
-
-export async function runFirstSimulationAndGetFile(): Promise<{
-  filePath: string;
-  fileName: string;
-}> {
+/**
+ * Execute first simulation with default parameters and get file path
+ * 
+ * @param repository - Simulation repository interface
+ * @returns File path and name for download
+ * @throws Error if simulation execution or file access fails
+ */
+export async function runFirstSimulationAndGetFile(
+  repository: ISimulationRepository,
+): Promise<{ filePath: string; fileName: string }> {
+  // Execute first simulation with default parameters
   await Promise.resolve(getFirstSimulation());
-  try {
-    await fs.access(STORAGE_FILE);
-    return { filePath: STORAGE_FILE, fileName: path.basename(STORAGE_FILE) };
-  } catch {
-    await fs.access(LEGACY_FILE);
-    return { filePath: LEGACY_FILE, fileName: path.basename(LEGACY_FILE) };
-  }
+
+  // Get file path from repository
+  return await repository.getSimulationFilePath();
 }

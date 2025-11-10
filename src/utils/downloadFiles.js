@@ -12,15 +12,15 @@ const downloadFiles = () => {
 const execDownload = (csvName, pyScript) => {
   const filePath = getPath(pathNames.RAW_FILES, csvName);
   do {
-    console.log(`Intentar descargar ${csvName}`);
+    console.log(`Attempting to download ${csvName}`);
     try {
       execSyncScript(pathNames.PY_DOWNLOAD_SCRIPTS, pyScript);
     } catch (error) {
-      console.log(`Fallo la descarga de ${csvName}`);
+      console.log(`Download failed for ${csvName}`);
     }
     console.log(filePath);
   } while (!fs.existsSync(filePath));
-  console.log(`${csvName} descargado`);
+  console.log(`${csvName} downloaded`);
 };
 
 export default downloadFiles;
