@@ -8,16 +8,16 @@ import {
 } from "./steps.js";
 
 const mainFlow = () => {
-  console.log("********** Iniciando Actualizacion **********");
-  console.log("========= 1 - Descargar Datos =========");
+  console.log("********** Starting Update **********");
+  console.log("========= 1 - Download Data =========");
 
   downloadRawData();
 
-  console.log("========= 2 - Pre Procesamiento =========");
+  console.log("========= 2 - Pre Processing =========");
 
   execPreProcessing();
 
-  console.log("========= 3 - Mover Archivos =========");
+  console.log("========= 3 - Move Files =========");
 
   moveFiles();
 
@@ -25,15 +25,15 @@ const mainFlow = () => {
 
   execTest_seirhuf_normal();
 
-  console.log("========= 5 - Generar Archivos de Gaficos =========");
+  console.log("========= 5 - Generate Graphic Files =========");
 
   generateGraphicFiles();
 
-  console.log("========= 6 - Generar Archivos de Simulacion =========");
+  console.log("========= 6 - Generate Simulation Files =========");
 
   generateSimulationFiles();
 
-  console.log("********** Actualizacion Finalizada **********");
+  console.log("********** Update Completed **********");
 };
 
 export default mainFlow;

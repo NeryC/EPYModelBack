@@ -66,7 +66,7 @@ const execPythonScriptWithReturn = async (params) => {
   };
   const pyshell = new PythonShell(fileNames.SIMULADOR_PY, options);
 
-  // Captura la salida estándar y los errores
+  // Capture standard output and errors
   let output = "";
   let error = "";
   pyshell.on("message", function (message) {
@@ -76,7 +76,7 @@ const execPythonScriptWithReturn = async (params) => {
     error += err;
   });
 
-  // Crea una promesa que se resuelve cuando el proceso finaliza
+  // Create a promise that resolves when the process finishes
   const endPromise = new Promise((resolve, reject) => {
     pyshell.end(function (err, code, signal) {
       if (err) reject(err);
