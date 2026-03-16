@@ -176,48 +176,60 @@ out_eq <- ode(y = y0[1:4], times = time, func = odefun_beta_eq, parms = odefun_p
 
 
 # =============================================================================
-# 4. ODE de proyección SEIRH con parámetros dinámicos
+# 4. ODE de proyección SEIRH con parámetros dinámicos (closure)
 # =============================================================================
 # Los parámetros beta y lambdas varían día a día durante la proyección.
-# Se pasan como vectores beta1, beta2, ..., betaN (uno por día), y se
-# interpolan linealmente dentro de cada paso de integración para suavidad.
-odefun_proy <- function(t, state, parameters) {
-  with(as.list(c(state, parameters)), {
-    index <- ceiling(t)
-    if (index == 0)            index <- 1
-    if (index == winsize + 1) {
-      # Último intervalo: usar directamente el valor final
-      beta_int  <- get(paste("beta",  winsize + 1, sep = ""))
-      lamih_int <- get(paste("lamih", winsize + 1, sep = ""))
-      lamif_int <- get(paste("lamif", winsize + 1, sep = ""))
-      lamhu_int <- get(paste("lamhu", winsize + 1, sep = ""))
-      lamhf_int <- get(paste("lamhf", winsize + 1, sep = ""))
-      lamuf_int <- get(paste("lamuf", winsize + 1, sep = ""))
-    } else {
-      # Interpolación lineal entre el valor del día `index` y `index+1`
-      frac <- t - floor(t)  # Fracción del día (0 a 1)
-      beta_int  <- get(paste("beta",  index, sep = "")) + (get(paste("beta",  index + 1, sep = "")) - get(paste("beta",  index, sep = ""))) * frac
-      lamih_int <- get(paste("lamih", index, sep = "")) + (get(paste("lamih", index + 1, sep = "")) - get(paste("lamih", index, sep = ""))) * frac
-      lamif_int <- get(paste("lamif", index, sep = "")) + (get(paste("lamif", index + 1, sep = "")) - get(paste("lamif", index, sep = ""))) * frac
-      lamhu_int <- get(paste("lamhu", index, sep = "")) + (get(paste("lamhu", index + 1, sep = "")) - get(paste("lamhu", index, sep = ""))) * frac
-      lamhf_int <- get(paste("lamhf", index, sep = "")) + (get(paste("lamhf", index + 1, sep = "")) - get(paste("lamhf", index, sep = ""))) * frac
-      lamuf_int <- get(paste("lamuf", index, sep = "")) + (get(paste("lamuf", index + 1, sep = "")) - get(paste("lamuf", index, sep = ""))) * frac
-    }
+#
+# DISEÑO: en lugar del patrón get(paste("beta", index, sep="")) — que hace una
+# búsqueda de variable por nombre en cada paso del integrador (hot path) —
+# se usa un closure que captura los vectores directamente. Esto es más rápido
+# (acceso directo a vector vs. lookup en environment) y más legible.
+#
+# crear_odefun_proy() devuelve una función compatible con deSolve::ode() que
+# interpola linealmente los parámetros entre días consecutivos.
+crear_odefun_proy <- function(beta_v, lamih_v, lamif_v, lamhu_v, lamhf_v, lamuf_v) {
+  # Capturar los vectores en el closure (evaluados una sola vez)
+  n_max <- length(beta_v)
 
-    # Fracciones complementarias que suman a 1
-    lamho <- (1 - lamhu_int - lamhf_int)  # H → recuperados
-    lamuo <- (1 - lamuf_int)              # U → recuperados
+  function(t, state, parameters) {
+    with(as.list(c(state, parameters)), {
+      # Índice base del día actual, clampeado al rango del vector
+      idx <- max(1L, min(ceiling(t), n_max))
 
-    # Sistema de ecuaciones SEIRHUF (sin importados/vacunados en proyección)
-    dS <- -beta_int * S * I / N  # nolint
-    dE <-  beta_int * S * I / N - alpha * E  # nolint
-    dI <-  alpha * E - gamma * I  # nolint
-    dR <-  gamma * I  # nolint
-    dH <-  lamih_int * gamma * I - lamhu_int * deltahu * H - lamhf_int * deltahf * H - lamho * deltaho * H  # nolint
-    dU <-  lamhu_int * deltahu * H - lamuf_int * phiuf * U - lamuo * phiuo * U  # nolint
-    dF <-  lamif_int * gamma * I + lamuf_int * phiuf * U + lamhf_int * deltahf * H  # nolint
-    list(c(dS, dE, dI, dR, dH, dU, dF))
-  })
+      if (idx >= n_max) {
+        # Más allá del último punto: usar el valor final sin interpolación
+        beta_int  <- beta_v[n_max]
+        lamih_int <- lamih_v[n_max]
+        lamif_int <- lamif_v[n_max]
+        lamhu_int <- lamhu_v[n_max]
+        lamhf_int <- lamhf_v[n_max]
+        lamuf_int <- lamuf_v[n_max]
+      } else {
+        # Interpolación lineal entre día idx y día idx+1
+        frac      <- t - floor(t)  # Fracción del día actual [0, 1)
+        beta_int  <- beta_v[idx]  + (beta_v[idx + 1]  - beta_v[idx])  * frac
+        lamih_int <- lamih_v[idx] + (lamih_v[idx + 1] - lamih_v[idx]) * frac
+        lamif_int <- lamif_v[idx] + (lamif_v[idx + 1] - lamif_v[idx]) * frac
+        lamhu_int <- lamhu_v[idx] + (lamhu_v[idx + 1] - lamhu_v[idx]) * frac
+        lamhf_int <- lamhf_v[idx] + (lamhf_v[idx + 1] - lamhf_v[idx]) * frac
+        lamuf_int <- lamuf_v[idx] + (lamuf_v[idx + 1] - lamuf_v[idx]) * frac
+      }
+
+      # Fracciones complementarias que suman a 1 por construcción
+      lamho <- 1 - lamhu_int - lamhf_int  # H → recuperados
+      lamuo <- 1 - lamuf_int              # U → recuperados
+
+      # Sistema de ecuaciones SEIRHUF (sin importados/vacunados en proyección)
+      dS <- -beta_int * S * I / N  # nolint
+      dE <-  beta_int * S * I / N - alpha * E  # nolint
+      dI <-  alpha * E - gamma * I  # nolint
+      dR <-  gamma * I  # nolint
+      dH <-  lamih_int * gamma * I - lamhu_int * deltahu * H - lamhf_int * deltahf * H - lamho * deltaho * H  # nolint
+      dU <-  lamhu_int * deltahu * H - lamuf_int * phiuf * U - lamuo * phiuo * U  # nolint
+      dF <-  lamif_int * gamma * I + lamuf_int * phiuf * U + lamhf_int * deltahf * H  # nolint
+      list(c(dS, dE, dI, dR, dH, dU, dF))
+    })
+  }
 }
 
 
@@ -366,12 +378,12 @@ dev.off()
 # =============================================================================
 # 9. Resolver ODE para cada escenario
 # =============================================================================
-# Helper: construye el vector de parámetros para odefun_proy y resuelve el ODE
+# Helper: crea el closure para el escenario dado y resuelve el ODE.
+# Los parámetros dinámicos se capturan en el closure; odeparam solo pasa las
+# constantes del ODE (N, alpha, gamma, deltahu, ...) que no cambian entre escenarios.
 .resolver_ode <- function(beta_fun, lam_ih, lam_if, lam_hu, lam_hf, lam_uf) {
-  parms <- c(odeparam, winsize = proy_days,
-    beta  = beta_fun, lamih = lam_ih, lamif = lam_if,
-    lamhu = lam_hu,   lamhf = lam_hf, lamuf = lam_uf)
-  ode(y = y0, times = time, func = odefun_proy, parms = parms)
+  odefun <- crear_odefun_proy(beta_fun, lam_ih, lam_if, lam_hu, lam_hf, lam_uf)
+  ode(y = y0, times = time, func = odefun, parms = odeparam)
 }
 
 out_2w  <- .resolver_ode(beta_2w_fun, lamih_fun, lamif_fun, lamhu_fun, lamhf_fun, lamuf_fun)

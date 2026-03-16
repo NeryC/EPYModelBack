@@ -287,13 +287,11 @@ eliminar_ultima_linea <- function() {
   system(glue("sed -i '' -e '$ d' {archivo_de_salida_filepath}"))
 }
 
-# Lee la última línea del CSV usando una conexión de archivo R (cross-platform).
-# Se prefiere este método sobre `tail` que requiere herramientas Unix.
+# Lee la última línea del CSV usando fpeek::peek_tail_lines() que lee solo el
+# final del archivo sin cargar todo en memoria (eficiente para bitácoras grandes).
+# fpeek ya está importado al inicio del módulo.
 leer_ultima_linea <- function() {
-  conn        <- file(archivo_de_salida_filepath, open = "r")
-  lineas      <- readLines(conn)
-  ultima_linea <- lineas[length(lineas)]
-  close(conn)
+  ultima_linea <- fpeek::peek_tail_lines(archivo_de_salida_filepath, n = 1L)
   return(ultima_linea)
 }
 

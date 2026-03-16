@@ -84,6 +84,8 @@ reportar <- function(e) {
 # x == 1 → había problemas (divergencias): aumentar adapt_delta (pasos más pequeños).
 # x == 0 → sin problemas: reducir adapt_delta gradualmente para mantener eficiencia.
 # Se usa una estrategia asimétrica para evitar quedar atrapado cerca de 1.
+#
+# Retorna el nuevo valor de adapt_delta (usar como: adapt_delta <- set_adapt_delta(adapt_delta, x)).
 set_adapt_delta <- function(adapt_delta, x) {
   if (x == 1) {
     # Aumentar: si ya está cerca de 1, reducir el gap a la mitad en vez de sumar 0.01
@@ -100,6 +102,7 @@ set_adapt_delta <- function(adapt_delta, x) {
       adapt_delta <- max(adapt_delta - 0.01, 0.85)
     }
   }
+  return(adapt_delta)  # Retorno explícito; no depender de la evaluación implícita de <-
 }
 
 # Imprime la fecha de inicio del día de simulación en curso

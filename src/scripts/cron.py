@@ -220,9 +220,9 @@ def proyeccionR() -> None:
         .merge(df_obs,         on="fecha", how="outer")
     )
 
-    # 7. Metadatos de capacidad máxima histórica
-    df.insert(13, "CapacidadMax",      capacidad_max)
-    df.insert(14, "FechaCapacidadMax", fecha_capacidad_max)
+    # 7. Metadatos de capacidad máxima histórica (append al final — no depende de posición)
+    df["CapacidadMax"]      = capacidad_max
+    df["FechaCapacidadMax"] = fecha_capacidad_max
 
     _exportar(df, "proyR")
     print("Proyeccion R completada.")
@@ -261,8 +261,8 @@ def proyeccionH() -> None:
     )
 
     # 5. Capacidad máxima histórica de camas generales
-    df.insert(13, "CapacidadMax",      CAPACIDAD_MAX_HOSPITALIZADOS)
-    df.insert(14, "FechaCapacidadMax", FECHA_CAPACIDAD_MAX_HISTORICA)
+    df["CapacidadMax"]      = CAPACIDAD_MAX_HOSPITALIZADOS
+    df["FechaCapacidadMax"] = FECHA_CAPACIDAD_MAX_HISTORICA
 
     _exportar(df, "proyH")
     print("Proyeccion H completada.")
@@ -299,8 +299,8 @@ def proyeccionU() -> None:
     )
 
     # 5. Capacidad máxima histórica de camas UCI
-    df.insert(13, "CapacidadMax",      CAPACIDAD_MAX_UCI)
-    df.insert(14, "FechaCapacidadMax", FECHA_CAPACIDAD_MAX_HISTORICA)
+    df["CapacidadMax"]      = CAPACIDAD_MAX_UCI
+    df["FechaCapacidadMax"] = FECHA_CAPACIDAD_MAX_HISTORICA
 
     _exportar(df, "proyU")
     print("Proyeccion U completada.")
@@ -344,8 +344,8 @@ def proyeccionF() -> None:
     )
 
     # 6. Metadatos de capacidad
-    df.insert(13, "CapacidadMax",      capacidad_max)
-    df.insert(14, "FechaCapacidadMax", fecha_capacidad_max)
+    df["CapacidadMax"]      = capacidad_max
+    df["FechaCapacidadMax"] = fecha_capacidad_max
 
     _exportar(df, "proyF")
     print("Proyeccion F completada.")

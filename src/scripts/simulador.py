@@ -161,8 +161,9 @@ def odes(
 
     # --- Beta (tasa de transmisión) para el mes actual ---
     # beta = Rt * gamma * N / S  (fuerza de infección efectiva por susceptible)
+    # Guardia contra S → 0: si no quedan susceptibles beta es irrelevante (no hay infección).
     month_idx = min(int(np.floor(t / 30)), len(Rt) - 1)
-    beta = (Rt[month_idx] * gamma * N) / S
+    beta = (Rt[month_idx] * gamma * N) / S if S > 0.0 else 0.0
 
     # --- Ecuaciones diferenciales por compartimento ---
 
@@ -262,9 +263,11 @@ def main(params: list[str]) -> None:
     )
 
     # --- Extraer solo los valores diarios (t = 0, 1, 2, …) ---
-    mascara_diaria = np.isclose(t_continuo, np.round(t_continuo))
-    dias = np.round(t_continuo[mascara_diaria]).astype(int)
-    solucion_diaria = solucion[mascara_diaria]
+    # Con paso 0.1, cada día entero corresponde exactamente al índice i*10 (i=0,1,...,num_dias-1).
+    # Usar slicing directo es más rápido y evita errores de punto flotante de np.isclose.
+    indices_diarios = np.arange(0, len(t_continuo), 10)
+    dias            = np.arange(num_dias)
+    solucion_diaria = solucion[indices_diarios]
 
     def _serie(col: int) -> list[dict[str, Any]]:
         """Convierte una columna de la solución en lista [{day, value}, ...]."""

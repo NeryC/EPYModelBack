@@ -138,35 +138,33 @@ numero_x <- nrow(datos_confirmados_raw)
 # Si el registro diario tiene más días que los confirmados, rellenar con ceros.
 # Esto puede ocurrir cuando los datos del MSPBS avanzan más rápido que los
 # datos de confirmados (que requieren procesamiento adicional).
+#
+# NOTA: se construyen todas las filas nuevas de una sola vez y se une con rbind.
+# El patrón anterior de rbind dentro de un for-loop es O(n²) porque cada rbind
+# copia el DataFrame completo. Construir el bloque de filas primero es O(n).
 if (numero_datos > numero_x) {
-  for (i in seq(numero_x + 1, numero_datos)) {
-    datos_confirmados_raw <- rbind(
-      datos_confirmados_raw,
-      c(
-        X                 = i,
-        Fecha             = as.Date(as.numeric(as.Date("2020-03-06")) + i, origin = "1970-01-01"),
-        Confirmado_diario = 0
-      )
-    )
-  }
+  indices_nuevos <- seq(numero_x + 1, numero_datos)
+  filas_nuevas   <- data.frame(
+    X                 = indices_nuevos,
+    Fecha             = as.Date(as.numeric(as.Date("2020-03-06")) + indices_nuevos, origin = "1970-01-01"),
+    Confirmado_diario = 0L
+  )
+  datos_confirmados_raw <- rbind(datos_confirmados_raw, filas_nuevas)
 }
 
 # --- Fallecidos diarios (post-procesados por clean_F.R) ---
 datos_fallecidos_raw <- read.csv(filepaths$datos_fallecidos, sep = ",")
 numero_x <- nrow(datos_fallecidos_raw)
 
-# Rellenar con ceros si faltan días (mismo criterio que confirmados)
+# Rellenar con ceros si faltan días (mismo criterio que confirmados, también O(n))
 if (numero_datos > numero_x) {
-  for (i in seq(numero_x + 1, numero_datos)) {
-    datos_fallecidos_raw <- rbind(
-      datos_fallecidos_raw,
-      c(
-        X                = i,
-        Fecha            = as.Date(as.numeric(as.Date("2020-03-06")) + i, origin = "1970-01-01"),
-        Fallecido_diario = 0
-      )
-    )
-  }
+  indices_nuevos <- seq(numero_x + 1, numero_datos)
+  filas_nuevas   <- data.frame(
+    X                = indices_nuevos,
+    Fecha            = as.Date(as.numeric(as.Date("2020-03-06")) + indices_nuevos, origin = "1970-01-01"),
+    Fallecido_diario = 0L
+  )
+  datos_fallecidos_raw <- rbind(datos_fallecidos_raw, filas_nuevas)
 }
 fallecidos <- datos_fallecidos_raw$Fallecido_diario
 
@@ -214,10 +212,18 @@ confirmados_sin_subregistro[is.na(confirmados_sin_subregistro)] <- 0
 export("factor_subregistro")
 factor_subregistro <- datos_diarios_raw$Cantidad.Pruebas^(-0.914773) * exp(9.00991)
 indices_inf        <- which(is.infinite(factor_subregistro))
-factor_subregistro[indices_inf] <- 1  # Temporal para la interpolación
+factor_subregistro[indices_inf] <- NA  # Marcar como NA para interpolación segura
 for (i in indices_inf) {
-  # Interpolar con la media de los días adyacentes
-  factor_subregistro[i] <- 0.5 * (factor_subregistro[i - 1] + factor_subregistro[i + 1])
+  # Interpolar con la media de los días adyacentes.
+  # Guardas: si i == 1 no hay i-1; si i == longitud no hay i+1.
+  # En ambos extremos se usa el único vecino disponible.
+  if (i == 1) {
+    factor_subregistro[i] <- factor_subregistro[i + 1]
+  } else if (i == length(factor_subregistro)) {
+    factor_subregistro[i] <- factor_subregistro[i - 1]
+  } else {
+    factor_subregistro[i] <- 0.5 * (factor_subregistro[i - 1] + factor_subregistro[i + 1])
+  }
 }
 
 # Confirmados ajustados por subregistro (más cercanos al número real de infectados)
