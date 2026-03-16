@@ -10,7 +10,7 @@ export const getSimulation = async (
   default_lambda_I_to_H: number,
   isFirstSimulation = false,
 ): Promise<string> => {
-  const SEICHUFO = JSON.stringify(getSEICHUFO());
+  const SEICHUFO = JSON.stringify(await getSEICHUFO());
   const params = [
     SEICHUFO,
     default_Rt,
@@ -23,16 +23,16 @@ export const getSimulation = async (
   return result;
 };
 
-export const getFirstSimulation = (): void => {
+export const getFirstSimulation = async (): Promise<void> => {
   const default_Rt = JSON.stringify([1.1, 1.2, 1.3, 0.8, 0.7, 0.9]);
   const default_UCI_threshold = 100;
   const default_V_filtered = 1000;
   const default_lambda_I_to_H = 0.5;
-  getSimulation(default_Rt, default_UCI_threshold, default_V_filtered, default_lambda_I_to_H, true);
+  await getSimulation(default_Rt, default_UCI_threshold, default_V_filtered, default_lambda_I_to_H, true);
 };
 
-const getSEICHUFO = (): number[] => {
-  const csv = fs.readFileSync(getPath(pathNames.DATA_FILES, fileNames.SIM_CSV), 'utf8');
+const getSEICHUFO = async (): Promise<number[]> => {
+  const csv = await fs.promises.readFile(getPath(pathNames.DATA_FILES, fileNames.SIM_CSV), 'utf8');
   // Split the CSV file string into an array of lines
   const lines = csv.split('\n');
   if (lines.length < 2) {
@@ -65,19 +65,25 @@ const execPythonScriptWithReturn = async (params: string[]): Promise<string> => 
 
   // Capture standard output and errors
   let output = '';
-  let error = '';
+  const errorOutput: string[] = [];
   pyshell.on('message', function (message) {
     output += message;
   });
   pyshell.on('error', function (err) {
-    error += err;
+    errorOutput.push(String(err));
   });
 
   // Create a promise that resolves when the process finishes
   const endPromise = new Promise<string>((resolve, reject) => {
     pyshell.end(function (err, _code, _signal) {
-      if (err) reject(err);
-      if (error) console.error(error);
+      if (err) {
+        reject(err);
+        return;
+      }
+      if (errorOutput.length > 0) {
+        reject(new Error(`Python error: ${errorOutput.join('\n')}`));
+        return;
+      }
       resolve(output);
     });
   });

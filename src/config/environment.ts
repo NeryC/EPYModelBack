@@ -1,16 +1,27 @@
 import { EnvironmentConfig } from "../types/index.js";
+import { logger } from "../utils/logger.js";
+
+const rawNodeEnv = process.env.NODE_ENV ?? "development";
+const nodeEnv: 'development' | 'production' | 'test' =
+  rawNodeEnv === "production" || rawNodeEnv === "test"
+    ? rawNodeEnv
+    : "development";
 
 /**
  * Environment configuration with default values and type safety
  */
 export const environment: EnvironmentConfig = {
   PORT: parseInt(process.env.PORT || "3001", 10),
-  NODE_ENV: process.env.NODE_ENV || "development",
+  NODE_ENV: nodeEnv,
   // optional CORS allow list, comma-separated
   CORS_ORIGIN: process.env.CORS_ORIGIN || "*",
   // optional redis url for BullMQ
   REDIS_URL: process.env.REDIS_URL || "",
 };
+
+if (environment.CORS_ORIGIN === '*' && environment.NODE_ENV === 'production') {
+  logger.warn('CORS_ORIGIN is set to * in production');
+}
 
 /**
  * Validates that all required environment variables are present

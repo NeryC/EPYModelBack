@@ -12,13 +12,12 @@ export default [
       parserOptions: {
         sourceType: 'module',
         ecmaVersion: 2022,
+        project: true,
       },
       globals: {
         console: 'readonly',
         process: 'readonly',
         Buffer: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
       },
     },
     plugins: {
@@ -27,7 +26,8 @@ export default [
     rules: {
       ...tseslint.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
       'no-case-declarations': 'off',
     },
   },

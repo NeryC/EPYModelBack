@@ -101,6 +101,7 @@ export function validateParams(rules: ValidationRule[]) {
 }
 
 /**
+ * @deprecated — use zodValidator.ts with ProjectionQuerySchema instead
  * Specific validation for projection format
  */
 export const validateProjectionFormat = validateParams([
@@ -112,6 +113,7 @@ export const validateProjectionFormat = validateParams([
 ]);
 
 /**
+ * @deprecated — use zodValidator.ts with SimulationQuerySchema instead
  * Specific validation for simulation parameters
  */
 export const validateSimulationParams = validateParams([

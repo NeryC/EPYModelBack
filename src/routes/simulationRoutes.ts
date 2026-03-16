@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { SimulationController } from "../controllers/simulationController.js";
-import { validateSimulationParams } from "../middleware/validationMiddleware.js";
 import { validateQuery } from "../middleware/zodValidator.js";
 import { SimulationQuerySchema } from "../api/v1/simulations/dto.js";
 
@@ -14,10 +13,10 @@ router.get(
   validateQuery(SimulationQuerySchema),
   simulationController.getSimulation
 );
-// Legacy endpoint
+// Legacy endpoint — now also uses Zod validation
 router.get(
   "/get-simulation",
-  validateSimulationParams,
+  validateQuery(SimulationQuerySchema),
   simulationController.getSimulation
 );
 router.get("/get-first-simulation", simulationController.getFirstSimulation);

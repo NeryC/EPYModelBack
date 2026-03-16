@@ -46,7 +46,7 @@ import('./infrastructure/storage/file-repository.js')
   .catch(() => {});
 
 // Request id + logging middleware
-app.use((req: Request & { id?: string }, res: Response, next: NextFunction) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   const id = req.headers['x-request-id']?.toString() || randomUUID();
   req.id = id;
   res.setHeader('X-Request-Id', id);
@@ -59,11 +59,11 @@ app.use((req: Request & { id?: string }, res: Response, next: NextFunction) => {
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
+  const isProduction = environment.NODE_ENV === 'production';
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    environment: environment.NODE_ENV,
-    port: environment.PORT,
+    ...(isProduction ? {} : { environment: environment.NODE_ENV, port: environment.PORT }),
   });
 });
 
@@ -75,6 +75,11 @@ app.use('/api/v1', filesRouter);
 // Legacy mounts for backward compatibility
 app.use('/', projectionRoutes);
 app.use('/', simulationRoutes);
+
+// Swagger docs (development only) — must be registered BEFORE the 404 handler
+if (environment.NODE_ENV === 'development') {
+  setupSwagger(app);
+}
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {
@@ -184,7 +189,6 @@ const server = app.listen(environment.PORT, () => {
   // Dev extras
   if (environment.NODE_ENV === 'development') {
     logger.info({ url: `http://localhost:${environment.PORT}/health` }, 'health_url');
-    setupSwagger(app);
   }
 });
 

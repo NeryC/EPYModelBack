@@ -14,8 +14,8 @@ import {
   SimulationResults,
 } from '../../domain/simulation.js';
 
-const STORAGE_FILE = 'storage/results/simulation.json';
-const LEGACY_FILE = 'public/results/simulation.json';
+const STORAGE_FILE = path.join(process.cwd(), 'storage/results/simulation.json');
+const LEGACY_FILE = path.join(process.cwd(), 'public/results/simulation.json');
 
 /**
  * File-based implementation of ISimulationRepository
@@ -42,15 +42,10 @@ export class FileSimulationRepository implements ISimulationRepository {
    * Find simulation by ID
    * Note: Current implementation uses file-based storage, so we search by ID in the file
    */
-  async findById(id: string): Promise<Simulation | null> {
-    try {
-      const data = await this.getSimulationData();
-      // In a file-based system, we'd need to read all and filter
-      // For now, return null as we don't have multi-simulation storage
-      return null;
-    } catch {
-      return null;
-    }
+  async findById(_id: string): Promise<Simulation | null> {
+    // In a file-based system, we don't support lookup by ID
+    // (single-file storage does not track multiple simulations)
+    return null;
   }
 
   /**
@@ -110,12 +105,15 @@ export class FileSimulationRepository implements ISimulationRepository {
     // Try storage file first
     try {
       const data = await fs.readFile(STORAGE_FILE, 'utf-8');
-      return JSON.parse(data) as SimulationResults;
+      const saved = JSON.parse(data) as Record<string, unknown>;
+      // Handle both: full Simulation object (saved by save()) and bare SimulationResults
+      return (saved.results ?? saved) as SimulationResults;
     } catch {
       // Fallback to legacy file
       try {
         const data = await fs.readFile(LEGACY_FILE, 'utf-8');
-        return JSON.parse(data) as SimulationResults;
+        const saved = JSON.parse(data) as Record<string, unknown>;
+        return (saved.results ?? saved) as SimulationResults;
       } catch {
         throw new Error('Simulation data file not found or invalid JSON');
       }

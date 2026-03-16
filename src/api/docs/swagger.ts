@@ -16,5 +16,5 @@ export function setupSwagger(app: Express) {
     apis: [],
   };
   const spec = swaggerJSDoc(options);
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(spec));
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(spec));
 }

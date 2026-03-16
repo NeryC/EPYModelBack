@@ -5,7 +5,7 @@
  * It transforms DTOs to domain inputs and orchestrates use cases.
  */
 
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { AppError, asyncHandler, sendSuccessResponse } from '../utils/errorHandler.js';
 import { executeSimulationUseCase } from '../application/simulations/get-simulation.js';
 import { runFirstSimulationAndGetFile } from '../application/simulations/get-first-simulation-file.js';
@@ -76,22 +76,22 @@ export class SimulationController {
 
   /**
    * Get first simulation file (default parameters)
-   * 
+   *
    * Returns the simulation file for download
    */
-  getFirstSimulation = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  getFirstSimulation = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { filePath, fileName } = await this.simulationRepository.getSimulationFilePath();
 
     res.download(filePath, fileName, (err: Error | null) => {
-      if (err) {
-        throw new AppError(`Failed to download ${fileName}`, 500);
+      if (err && !res.headersSent) {
+        next(new AppError(`Failed to download ${fileName}`, 500));
       }
     });
   });
 
   /**
    * Get first simulation data as JSON
-   * 
+   *
    * Returns the simulation data as JSON response
    */
   getFirstSimulationData = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -110,14 +110,14 @@ export class SimulationController {
    * Executes the first simulation and returns the file for download
    */
   getFirstSimulationWithExecution = asyncHandler(
-    async (req: Request, res: Response): Promise<void> => {
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { filePath, fileName } = await runFirstSimulationAndGetFile(
         this.simulationRepository,
       );
 
       res.download(filePath, fileName, (err: Error | null) => {
-        if (err) {
-          throw new AppError(`Failed to download ${fileName}`, 500);
+        if (err && !res.headersSent) {
+          next(new AppError(`Failed to download ${fileName}`, 500));
         }
       });
     },

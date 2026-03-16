@@ -11,7 +11,9 @@ export function validateQuery(schema: ZodSchema) {
         .join(", ");
       return next(new AppError(`Validation failed: ${message}`, 400));
     }
-    next();
+    // Assign transformed values back so controllers receive coerced types
+    Object.assign(req.query, parsed.data);
+    return next();
   };
 }
 

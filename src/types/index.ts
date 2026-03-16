@@ -1,7 +1,7 @@
 // Environment configuration
 export interface EnvironmentConfig {
   PORT: number;
-  NODE_ENV: string;
+  NODE_ENV: 'development' | 'production' | 'test';
   CORS_ORIGIN?: string;
   REDIS_URL?: string;
 }
@@ -15,7 +15,7 @@ export interface SimulationParams {
 }
 
 // API response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;

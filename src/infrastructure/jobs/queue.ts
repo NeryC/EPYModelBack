@@ -1,5 +1,5 @@
 import { Queue, Worker, JobsOptions } from 'bullmq';
-import IORedis from 'ioredis';
+import { Redis as IORedis } from 'ioredis';
 import { environment } from '../../config/environment.js';
 import { logger } from '../logging/logger.js';
 

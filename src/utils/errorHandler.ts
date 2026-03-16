@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ApiResponse } from "../types/index.js";
 
 /**
@@ -62,24 +62,17 @@ export function sendSuccessResponse<T>(
 /**
  * Async error wrapper for route handlers
  */
-export function asyncHandler<T extends any[]>(
-  fn: (...args: T) => Promise<any>
-): (...args: T) => Promise<void> {
-  return async (...args: T): Promise<void> => {
-    try {
-      await fn(...args);
-    } catch (error) {
-      const res = args[1] as Response;
-      sendErrorResponse(res, error as Error);
-    }
+export const asyncHandler = (fn: Function) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
   };
-}
+};
 
 /**
  * Validates required query parameters
  */
 export function validateQueryParams(
-  query: Record<string, any>,
+  query: Record<string, unknown>,
   requiredParams: string[]
 ): void {
   const missingParams = requiredParams.filter((param) => !query[param]);

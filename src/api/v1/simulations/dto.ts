@@ -5,21 +5,22 @@ import { z } from 'zod';
  * Provides runtime type safety and validation
  */
 
+// Shared Rt validator used by both SimulationParamsSchema and SimulationQuerySchema
+const rtValidator = z.string().refine(
+  (val) => {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) && parsed.every((item) => typeof item === 'number');
+    } catch {
+      return false;
+    }
+  },
+  { message: 'Rt must be a valid JSON array of numbers' },
+);
+
 // Base simulation parameter schema
 export const SimulationParamsSchema = z.object({
-  Rt: z.string().refine(
-    (val) => {
-      try {
-        const parsed = JSON.parse(val);
-        return Array.isArray(parsed) && parsed.every((item) => typeof item === 'number');
-      } catch {
-        return false;
-      }
-    },
-    {
-      message: 'Rt must be a valid JSON array of numbers',
-    }
-  ),
+  Rt: rtValidator,
   UCI_threshold: z.coerce
     .number()
     .positive('UCI_threshold must be a positive number')
@@ -38,19 +39,7 @@ export const SimulationParamsSchema = z.object({
 // Note: Query parameters come as strings, so we validate them as strings
 // The controller will parse them to the correct types
 export const SimulationQuerySchema = z.object({
-  Rt: z.string().refine(
-    (val) => {
-      try {
-        const parsed = JSON.parse(val);
-        return Array.isArray(parsed) && parsed.every((item) => typeof item === 'number');
-      } catch {
-        return false;
-      }
-    },
-    {
-      message: 'Rt must be a valid JSON array of numbers',
-    },
-  ),
+  Rt: rtValidator,
   UCI_threshold: z.string().regex(/^\d+(\.\d+)?$/, 'UCI_threshold must be a valid number'),
   V_filtered: z.string().regex(/^\d+(\.\d+)?$/, 'V_filtered must be a valid number'),
   lambda_I_to_H: z.string().regex(/^\d+(\.\d+)?$/, 'lambda_I_to_H must be a valid number'),
