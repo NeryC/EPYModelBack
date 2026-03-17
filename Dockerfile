@@ -6,7 +6,8 @@
 FROM rocker/r-ver:4.3.3
 
 # Apuntar a RSPM (binarios Linux) antes de instalar cualquier paquete R
-RUN echo 'options(repos = c(RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest", CRAN = "https://cloud.r-project.org"))' \
+RUN mkdir -p /etc/R && \
+    echo 'options(repos = c(RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest", CRAN = "https://cloud.r-project.org"))' \
     >> /etc/R/Rprofile.site
 
 # Dependencias del sistema necesarias para rstan y paquetes tidyverse
