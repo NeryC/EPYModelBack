@@ -48,9 +48,11 @@ options(\
 RUN install2.r --error --skipinstalled rstan
 
 # ── Paquetes R: resto del modelo epidemiológico ───────────────
+# 'ensurer' fue archivado en CRAN; se instala desde GitHub (smbache/ensurer).
 RUN install2.r --error --skipinstalled \
     tidyverse dplyr rio deSolve bayesplot \
-    tictoc modules roll ensurer R.utils fpeek
+    tictoc modules roll R.utils fpeek remotes && \
+    Rscript -e "remotes::install_github('smbache/ensurer')"
 
 WORKDIR /usr/src/app
 
