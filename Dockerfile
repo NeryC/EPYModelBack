@@ -1,8 +1,23 @@
 # ─────────────────────────────────────────────────────────────
-# Base: rocker/stan ya trae R 4.x + rstan + Stan precompilados.
-# Elimina los 30-40 min de compilación de C++/Stan.
+# Base: rocker/r-ver 4.3.3 + RSPM (paquetes binarios para Ubuntu 22.04).
+# RSPM provee rstan y dependencias como binarios precompilados,
+# eliminando los 30-40 min de compilación de C++/Stan.
 # ─────────────────────────────────────────────────────────────
-FROM rocker/stan:4.3
+FROM rocker/r-ver:4.3.3
+
+# Apuntar a RSPM (binarios Linux) antes de instalar cualquier paquete R
+RUN echo 'options(repos = c(RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest", CRAN = "https://cloud.r-project.org"))' \
+    >> /etc/R/Rprofile.site
+
+# Dependencias del sistema necesarias para rstan y paquetes tidyverse
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl-dev libcurl4-openssl-dev libxml2-dev \
+    libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
+    libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar rstan desde binario (sin compilar C++)
+RUN install2.r --error --skipinstalled rstan
 
 WORKDIR /usr/src/app
 
