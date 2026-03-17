@@ -1,44 +1,62 @@
 # ─────────────────────────────────────────────────────────────
-# Base: rocker/r-ver 4.3.3 + RSPM (paquetes binarios para Ubuntu 22.04).
-# RSPM provee rstan y dependencias como binarios precompilados,
+# Base: rocker/r-ver 4.3.3 (Ubuntu 22.04 Jammy, imagen mínima).
+# RSPM provee paquetes R como binarios precompilados (amd64),
 # eliminando los 30-40 min de compilación de C++/Stan.
 # ─────────────────────────────────────────────────────────────
 FROM rocker/r-ver:4.3.3
 
-# Apuntar a RSPM (binarios Linux) antes de instalar cualquier paquete R
-RUN mkdir -p /etc/R && \
-    echo 'options(repos = c(RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest", CRAN = "https://cloud.r-project.org"))' \
-    >> /etc/R/Rprofile.site
-
-# Dependencias del sistema necesarias para rstan y paquetes tidyverse
+# ── Dependencias de sistema (única capa apt) ──────────────────
+# rocker/r-ver es minimal: curl, python3, gnupg NO vienen incluidos.
+# Se instala todo aquí para no repetir apt-get update en capas posteriores.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Herramientas base
+    curl ca-certificates gnupg \
+    # Python
+    python3 python3-pip \
+    # Libs para R: rstan, tidyverse, ggplot2, etc.
     libssl-dev libcurl4-openssl-dev libxml2-dev \
     libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
     libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar rstan desde binario (sin compilar C++)
+# ── Node.js 18 ────────────────────────────────────────────────
+# El script setup_18.x ejecuta su propio apt-get update internamente.
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# ── Python: paquetes científicos (wheels binarios, ~1 min) ────
+RUN pip3 install --no-cache-dir pandas scipy numpy
+
+# ── RSPM: binarios Linux para Ubuntu 22.04 Jammy ─────────────
+# HTTPUserAgent es obligatorio para que RSPM sirva binarios en vez
+# de redirigir a instalación desde fuente.
+RUN mkdir -p /etc/R && echo '\
+options(\
+  repos = c(\
+    RSPM = "https://packagemanager.posit.co/cran/__linux__/jammy/latest",\
+    CRAN = "https://cloud.r-project.org"\
+  ),\
+  HTTPUserAgent = sprintf(\
+    "R/%s R (%s)",\
+    getRversion(),\
+    paste(getRversion(), R.version$platform, R.version$arch, R.version$os)\
+  )\
+)' >> /etc/R/Rprofile.site
+
+# ── Paquetes R: rstan primero (el más pesado) ─────────────────
 RUN install2.r --error --skipinstalled rstan
+
+# ── Paquetes R: resto del modelo epidemiológico ───────────────
+RUN install2.r --error --skipinstalled \
+    tidyverse dplyr rio deSolve bayesplot \
+    tictoc modules roll ensurer R.utils fpeek
 
 WORKDIR /usr/src/app
 
-# ── Node.js 18 ────────────────────────────────────────────────
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs
-
-# ── Python + paquetes científicos (wheels binarios, ~1 min) ───
-RUN apt-get install -y python3 python3-pip && \
-    pip3 install --no-cache-dir pandas scipy numpy
-
-# ── Paquetes R restantes via RSPM (binarios, sin compilar) ────
-# install2.r viene incluido en todas las imágenes rocker.
-# --skipinstalled evita reinstalar lo que ya trae rocker/stan.
-RUN install2.r --error --skipinstalled \
-    tidyverse dplyr rio deSolve bayesplot tictoc modules roll ensurer R.utils fpeek
-
-# ── Dependencias Node.js ──────────────────────────────────────
-# Se copian primero para aprovechar el caché de Docker:
-# si package.json no cambia, esta capa no se reconstruye.
+# ── Dependencias Node.js (capa cacheada por Docker) ───────────
+# Se copian primero para que esta capa no se reconstruya si solo
+# cambia el código fuente (pero no package.json).
 COPY package*.json ./
 RUN npm install
 
