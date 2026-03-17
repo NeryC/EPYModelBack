@@ -63,11 +63,11 @@ const execPythonScriptWithReturn = async (params: string[]): Promise<string> => 
   };
   const pyshell = new PythonShell(fileNames.SIMULADOR_PY, options);
 
-  // Capture standard output and errors
-  let output = '';
+  // Capture standard output lines and errors separately
+  const outputLines: string[] = [];
   const errorOutput: string[] = [];
   pyshell.on('message', function (message) {
-    output += message;
+    outputLines.push(message);
   });
   pyshell.on('error', function (err) {
     errorOutput.push(String(err));
@@ -84,7 +84,14 @@ const execPythonScriptWithReturn = async (params: string[]): Promise<string> => 
         reject(new Error(`Python error: ${errorOutput.join('\n')}`));
         return;
       }
-      resolve(output);
+      // Find the last line that looks like a JSON object (starts with '{').
+      // Any warnings or log messages printed by Python/numpy before the result are ignored.
+      const jsonLine = outputLines.findLast((line) => line.trimStart().startsWith('{'));
+      if (!jsonLine) {
+        reject(new Error(`No JSON output from Python. Full output: ${outputLines.join('\n')}`));
+        return;
+      }
+      resolve(jsonLine);
     });
   });
   return await endPromise;
