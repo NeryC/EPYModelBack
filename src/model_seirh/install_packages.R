@@ -1,28 +1,38 @@
-install.packages("tidyverse", repos = "http://cran.us.r-project.org")
-install.packages("dplyr", repos = "http://cran.us.r-project.org")
-install.packages("rio", repos = "http://cran.us.r-project.org")
-install.packages("rstan", repos = "http://cran.us.r-project.org")
-install.packages("deSolve", repos = "http://cran.us.r-project.org")
-install.packages("bayesplot", repos = "http://cran.us.r-project.org")
-install.packages("tictoc", repos = "http://cran.us.r-project.org")
-install.packages("modules", repos = "http://cran.us.r-project.org")
-install.packages("roll", repos = "http://cran.us.r-project.org")
-install.packages("ensurer", repos = "http://cran.us.r-project.org")
-install.packages("R.utils")
-install.packages("fpeek")
-install.packages("glu", repos = "http://cran.us.r-project.org")
+# install_packages.R
+# Instalación de paquetes R para el modelo SEIRHUF.
+#
+# En Docker: este script NO se ejecuta — los paquetes se instalan
+# en el Dockerfile usando rocker/stan (rstan precompilado) + install2.r.
+#
+# Uso manual (fuera de Docker, primera vez en una máquina nueva):
+#   Rscript src/model_seirh/install_packages.R
+#
+# Usa el mirror de Posit Package Manager para paquetes binarios
+# (sin compilación de C++, mucho más rápido que CRAN estándar).
 
-setwd(getwd())
-root_path <- getwd()
+RSPM <- "https://packagemanager.posit.co/cran/__linux__/jammy/latest"
 
-installed_previously <- read.csv(paste(
-    root_path,
-    "/src/model_seirh/installed_previously.csv",
-    sep = ""
-))
+paquetes <- c(
+    "tidyverse",
+    "dplyr",
+    "rio",
+    "rstan",
+    "deSolve",
+    "bayesplot",
+    "tictoc",
+    "modules",
+    "roll",
+    "ensurer",
+    "R.utils",
+    "fpeek"
+)
 
-base_r <- as.data.frame(installed.packages())
+# Instalar solo los que no están presentes
+faltantes <- paquetes[!paquetes %in% rownames(installed.packages())]
 
-to_install <- setdiff(installed_previously, base_r)
-
-install.packages(to_install, repos = "http://cran.us.r-project.org")
+if (length(faltantes) == 0) {
+    message("Todos los paquetes ya están instalados.")
+} else {
+    message("Instalando: ", paste(faltantes, collapse = ", "))
+    install.packages(faltantes, repos = RSPM)
+}
