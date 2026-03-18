@@ -255,12 +255,25 @@ def main(params: list[str]) -> None:
 
     # --- Integración numérica con paso de 0.1 días ---
     t_continuo = np.arange(0, num_dias, 0.1)
-    solucion = odeint(
-        odes,
-        x0,
-        t_continuo,
-        args=(Rt, uci_threshold, V_filtered, lam_I_to_H, lam_H_to_O, lam_U_to_O, lam_I_to_O),
-    )
+
+    # Redirigir fd 1 (C-level stdout) a /dev/null para suprimir mensajes
+    # de advertencia de LSODA (Fortran) que python-shell capturaría como JSON.
+    stdout_fd = sys.stdout.fileno()
+    saved_fd = os.dup(stdout_fd)
+    devnull_fd = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull_fd, stdout_fd)
+    os.close(devnull_fd)
+    try:
+        solucion = odeint(
+            odes,
+            x0,
+            t_continuo,
+            args=(Rt, uci_threshold, V_filtered, lam_I_to_H, lam_H_to_O, lam_U_to_O, lam_I_to_O),
+            printmessg=False,
+        )
+    finally:
+        os.dup2(saved_fd, stdout_fd)
+        os.close(saved_fd)
 
     # --- Extraer solo los valores diarios (t = 0, 1, 2, …) ---
     # Con paso 0.1, cada día entero corresponde exactamente al índice i*10 (i=0,1,...,num_dias-1).
