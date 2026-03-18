@@ -258,11 +258,19 @@ def main(params: list[str]) -> None:
 
     # Redirigir fd 1 (C-level stdout) a /dev/null para suprimir mensajes
     # de advertencia de LSODA (Fortran) que python-shell capturaría como JSON.
-    stdout_fd = sys.stdout.fileno()
-    saved_fd = os.dup(stdout_fd)
-    devnull_fd = os.open(os.devnull, os.O_WRONLY)
-    os.dup2(devnull_fd, stdout_fd)
-    os.close(devnull_fd)
+    # El try exterior protege ante entornos donde stdout no tiene fd real (fileno() lanzaría
+    # io.UnsupportedOperation); en ese caso se integra igual sin supresión.
+    saved_fd: int | None = None
+    stdout_fd: int | None = None
+    try:
+        stdout_fd = sys.stdout.fileno()
+        saved_fd = os.dup(stdout_fd)
+        devnull_fd = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull_fd, stdout_fd)
+        os.close(devnull_fd)
+    except Exception:
+        saved_fd = None
+
     try:
         solucion = odeint(
             odes,
@@ -272,8 +280,9 @@ def main(params: list[str]) -> None:
             printmessg=False,
         )
     finally:
-        os.dup2(saved_fd, stdout_fd)
-        os.close(saved_fd)
+        if saved_fd is not None and stdout_fd is not None:
+            os.dup2(saved_fd, stdout_fd)
+            os.close(saved_fd)
 
     # --- Extraer solo los valores diarios (t = 0, 1, 2, …) ---
     # Con paso 0.1, cada día entero corresponde exactamente al índice i*10 (i=0,1,...,num_dias-1).
