@@ -36,7 +36,7 @@ export async function executeSimulationUseCase(
   let parsedResult: SimulationResults;
   if (typeof result === 'string') {
     try {
-      parsedResult = JSON.parse(result) as SimulationResults;
+      parsedResult = JSON.parse(result.replace(/\bNaN\b/g, 'null')) as SimulationResults;
     } catch (error) {
       throw new Error(
         `Failed to parse simulation result: ${error instanceof Error ? error.message : 'Unknown error'}`,

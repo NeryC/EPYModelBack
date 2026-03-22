@@ -21,7 +21,7 @@ Parámetros epidemiológicos fijos
   gamma         Tasa I→*  (período infeccioso    ~7 días  → 1/7).
   psi           Tasa O→S  (inmunidad dura        ~180 días → 1/180).
   eta           Eficacia de vacuna (90 %).
-  delta_H_to_U  Tasa H→U (tiempo hasta UCI       ~7 días).
+  delta_H_to_U  Tasa H→U (tiempo hasta UCI       ~3 días).
   delta_H_to_F  Tasa H→F (tiempo hasta muerte desde H  ~9 días).
   delta_H_to_O  Tasa H→O (tiempo hasta recuperar desde H ~11 días).
   phi_U_to_F    Tasa U→F (tiempo hasta muerte desde UCI ~11 días).
@@ -82,7 +82,7 @@ psi: float = 1.0 / 180.0
 eta: float = 0.9
 
 # Tiempos de transición desde H (hospitalizados generales)
-delta_H_to_U: float = 1.0 / 7.0   # H → UCI:             ~7 días
+delta_H_to_U: float = 1.0 / 3.0   # H → UCI:             ~3 días (Grasselli, NEJM 2020)
 delta_H_to_F: float = 1.0 / 9.0   # H → Fallecido:       ~9 días
 delta_H_to_O: float = 1.0 / 11.0  # H → Recuperado:      ~11 días
 
@@ -94,7 +94,7 @@ phi_U_to_O: float = 1.0 / 12.0  # U → Recuperado:        ~12 días
 lambda_I_to_F: float = 0.002
 
 # Fracciones de H que escalan o fallecen (valores base, UCI no saturada)
-lambda_H_to_U: float = 0.20  # 20 % de H van a UCI
+lambda_H_to_U: float = 0.07  # 7 % de H van a UCI (Omicron, 2022)
 lambda_H_to_F: float = 0.15  # 15 % de H fallecen
 
 # Fracción de U que fallece (UCI no saturada)
@@ -152,18 +152,25 @@ def odes(
 
     # --- Tasas de mortalidad según saturación UCI ---
     if U > uci_threshold:
-        # UCI saturada: mayor mortalidad
+        # UCI saturada: mayor mortalidad; se recalculan las fracciones de recuperación
+        # para que la suma de fracciones de salida de H y U siga siendo 1.
         lam_H_F = LAMBDA_H_TO_F_SATURADO
         lam_U_F = LAMBDA_U_TO_F_SATURADO
+        lam_H_O = 1.0 - lambda_H_to_U - lam_H_F   # = 1 - 0.07 - 0.25 = 0.68
+        lam_U_O = 1.0 - lam_U_F                    # = 1 - 0.50 = 0.50
     else:
         lam_H_F = lambda_H_to_F
         lam_U_F = lambda_U_to_F
+        lam_H_O = lambda_H_to_O   # = 1 - 0.20 - 0.15 = 0.65
+        lam_U_O = lambda_U_to_O   # = 1 - 0.45 = 0.55
 
     # --- Beta (tasa de transmisión) para el mes actual ---
-    # beta = Rt * gamma * N / S  (fuerza de infección efectiva por susceptible)
-    # Guardia contra S → 0: si no quedan susceptibles beta es irrelevante (no hay infección).
+    # beta = Rt * gamma  (tasa de transmisión estándar SEIR)
+    # La fuerza de infección es beta * (S/N) * I, proporcional a S.
+    # Se clampea S a 0 para evitar valores negativos por la vacunación.
     month_idx = min(int(np.floor(t / 30)), len(Rt) - 1)
-    beta = (Rt[month_idx] * gamma * N) / S if S > 0.0 else 0.0
+    beta = Rt[month_idx] * gamma
+    S = max(S, 0.0)
 
     # --- Ecuaciones diferenciales por compartimento ---
 
@@ -184,14 +191,14 @@ def odes(
         (lambda_I_to_H * gamma * I)
         - (lambda_H_to_U * delta_H_to_U * H)
         - (lam_H_F * delta_H_to_F * H)
-        - (lambda_H_to_O * delta_H_to_O * H)
+        - (lam_H_O * delta_H_to_O * H)
     )
 
     # U: gana desde H (escalados); pierde a fallecidos y recuperados
     dUdt = (
         (lambda_H_to_U * delta_H_to_U * H)
         - (lam_U_F * phi_U_to_F * U)
-        - (lambda_U_to_O * phi_U_to_O * U)
+        - (lam_U_O * phi_U_to_O * U)
     )
 
     # F: acumula fallecidos desde I (directos), H y U
@@ -204,8 +211,8 @@ def odes(
     # O: gana desde recuperados (I, H, U) y vacunados; pierde por pérdida de inmunidad
     dOdt = (
         (lambda_I_to_O * gamma * I)
-        + (lambda_H_to_O * delta_H_to_O * H)
-        + (lambda_U_to_O * phi_U_to_O * U)
+        + (lam_H_O * delta_H_to_O * H)
+        + (lam_U_O * phi_U_to_O * U)
         + (eta * V_filtered)
         - (psi * O)
     )

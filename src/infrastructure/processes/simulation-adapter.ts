@@ -27,7 +27,7 @@ export const getFirstSimulation = async (): Promise<void> => {
   const default_Rt = JSON.stringify([1.1, 1.2, 1.3, 0.8, 0.7, 0.9]);
   const default_UCI_threshold = 100;
   const default_V_filtered = 1000;
-  const default_lambda_I_to_H = 0.5;
+  const default_lambda_I_to_H = 0.01;
   await getSimulation(default_Rt, default_UCI_threshold, default_V_filtered, default_lambda_I_to_H, true);
 };
 
