@@ -3,7 +3,7 @@ import path from "path";
 import {
   getFirstSimulation,
   getSimulation,
-} from "../utils/Simulation/getFirstSimulation.js";
+} from "../infrastructure/processes/simulation-adapter.js";
 import { SimulationParams } from "../types/index.js";
 
 export class SimulationService {
@@ -18,9 +18,9 @@ export class SimulationService {
     try {
       const result = await getSimulation(
         Rt,
-        UCI_threshold,
-        V_filtered,
-        lambda_I_to_H,
+        Number(UCI_threshold),
+        Number(V_filtered),
+        Number(lambda_I_to_H),
         false
       );
 
