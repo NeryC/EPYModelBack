@@ -1,0 +1,190 @@
+import { describe, it, expect } from 'vitest';
+import {
+  SimulationParamsSchema,
+  SimulationQuerySchema,
+  validateSimulationParams,
+  validateSimulationQuery,
+} from './dto.js';
+
+describe('SimulationParamsSchema — happy path', () => {
+  it('parses a valid set of parameters', () => {
+    const input = {
+      Rt: '[1.1, 1.2, 1.3]',
+      UCI_threshold: 100,
+      V_filtered: 1000,
+      lambda_I_to_H: 0.5,
+    };
+    const result = SimulationParamsSchema.parse(input);
+    expect(result.Rt).toBe('[1.1, 1.2, 1.3]');
+    expect(result.UCI_threshold).toBe(100);
+    expect(result.V_filtered).toBe(1000);
+    expect(result.lambda_I_to_H).toBe(0.5);
+  });
+
+  it('coerces string numbers to numbers', () => {
+    const input = {
+      Rt: '[1.0]',
+      UCI_threshold: '50',
+      V_filtered: '500',
+      lambda_I_to_H: '0.25',
+    };
+    const result = SimulationParamsSchema.parse(input);
+    expect(typeof result.UCI_threshold).toBe('number');
+    expect(result.UCI_threshold).toBe(50);
+  });
+});
+
+describe('SimulationParamsSchema — Rt (Boundary Value Analysis)', () => {
+  it('accepts a JSON array of numbers', () => {
+    expect(() =>
+      SimulationParamsSchema.parse({
+        Rt: '[1.0, 1.1, 1.2]',
+        UCI_threshold: 100,
+        V_filtered: 1000,
+        lambda_I_to_H: 0.5,
+      }),
+    ).not.toThrow();
+  });
+
+  it('rejects Rt that is not valid JSON', () => {
+    expect(() =>
+      SimulationParamsSchema.parse({
+        Rt: 'not-json',
+        UCI_threshold: 100,
+        V_filtered: 1000,
+        lambda_I_to_H: 0.5,
+      }),
+    ).toThrow();
+  });
+
+  it('rejects Rt that is a JSON object (not array)', () => {
+    expect(() =>
+      SimulationParamsSchema.parse({
+        Rt: '{"a": 1}',
+        UCI_threshold: 100,
+        V_filtered: 1000,
+        lambda_I_to_H: 0.5,
+      }),
+    ).toThrow();
+  });
+
+  it('rejects Rt with non-numeric elements', () => {
+    expect(() =>
+      SimulationParamsSchema.parse({
+        Rt: '[1, "two", 3]',
+        UCI_threshold: 100,
+        V_filtered: 1000,
+        lambda_I_to_H: 0.5,
+      }),
+    ).toThrow();
+  });
+
+  it('accepts an empty Rt array', () => {
+    expect(() =>
+      SimulationParamsSchema.parse({
+        Rt: '[]',
+        UCI_threshold: 100,
+        V_filtered: 1000,
+        lambda_I_to_H: 0.5,
+      }),
+    ).not.toThrow();
+  });
+});
+
+describe('SimulationParamsSchema — UCI_threshold (BVA)', () => {
+  const base = { Rt: '[1.0]', V_filtered: 1000, lambda_I_to_H: 0.5 };
+
+  it('rejects 0 (just below lower bound — positive only)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 0 })).toThrow();
+  });
+  it('rejects negative values', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: -1 })).toThrow();
+  });
+  it('accepts 1 (just inside lower bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 1 })).not.toThrow();
+  });
+  it('accepts 10000 (upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 10000 })).not.toThrow();
+  });
+  it('rejects 10001 (just above upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 10001 })).toThrow();
+  });
+});
+
+describe('SimulationParamsSchema — V_filtered (BVA)', () => {
+  const base = { Rt: '[1.0]', UCI_threshold: 100, lambda_I_to_H: 0.5 };
+
+  it('rejects 0', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 0 })).toThrow();
+  });
+  it('accepts 1', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 1 })).not.toThrow();
+  });
+  it('accepts 1000000 (upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 1000000 })).not.toThrow();
+  });
+  it('rejects 1000001 (just above upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 1000001 })).toThrow();
+  });
+});
+
+describe('SimulationParamsSchema — lambda_I_to_H (BVA)', () => {
+  const base = { Rt: '[1.0]', UCI_threshold: 100, V_filtered: 1000 };
+
+  it('accepts 0 (lower bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 0 })).not.toThrow();
+  });
+  it('rejects negative values just below lower bound', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: -0.001 })).toThrow();
+  });
+  it('accepts 1 (upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 1 })).not.toThrow();
+  });
+  it('rejects values just above upper bound', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 1.0001 })).toThrow();
+  });
+  it('accepts the midpoint 0.5', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 0.5 })).not.toThrow();
+  });
+});
+
+describe('SimulationQuerySchema (query string variant)', () => {
+  it('accepts well-formed string numeric values', () => {
+    const result = SimulationQuerySchema.parse({
+      Rt: '[1.1]',
+      UCI_threshold: '100',
+      V_filtered: '1000',
+      lambda_I_to_H: '0.5',
+    });
+    expect(result.UCI_threshold).toBe('100');
+  });
+
+  it('rejects non-numeric query strings', () => {
+    expect(() =>
+      SimulationQuerySchema.parse({
+        Rt: '[1.1]',
+        UCI_threshold: 'abc',
+        V_filtered: '1000',
+        lambda_I_to_H: '0.5',
+      }),
+    ).toThrow();
+  });
+});
+
+describe('validateSimulationParams / validateSimulationQuery helpers', () => {
+  it('validateSimulationParams returns the parsed object on success', () => {
+    const result = validateSimulationParams({
+      Rt: '[1.0]',
+      UCI_threshold: 100,
+      V_filtered: 1000,
+      lambda_I_to_H: 0.5,
+    });
+    expect(result).toMatchObject({ UCI_threshold: 100, V_filtered: 1000 });
+  });
+
+  it('validateSimulationQuery throws on invalid input', () => {
+    expect(() =>
+      validateSimulationQuery({ Rt: 'bad', UCI_threshold: 'x', V_filtered: 'y', lambda_I_to_H: 'z' }),
+    ).toThrow();
+  });
+});
