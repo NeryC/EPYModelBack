@@ -401,5 +401,4 @@ coverage/
 .stryker-tmp/
 reports/
 *.lcov
-playwright-report/
 test-results/
