@@ -19,7 +19,10 @@ export interface CreateAppOptions {
    */
   disableRateLimit?: boolean;
   /**
-   * If true, skips Swagger setup even in development.
+   * If true, skips Swagger setup. Swagger is only auto-mounted in development
+   * (NODE_ENV === 'development'); in any other environment Swagger is already
+   * off and this flag has no effect. Setting this true in test runs prevents
+   * the dev-mode auto-mount from running.
    */
   skipSwagger?: boolean;
 }
