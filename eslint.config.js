@@ -6,13 +6,16 @@ import prettier from 'eslint-config-prettier';
 export default [
   js.configs.recommended,
   {
-    files: ['src/**/*.{ts,js}'],
+    files: ['src/**/*.{ts,js}', 'tests/**/*.{ts,js}'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
         sourceType: 'module',
         ecmaVersion: 2022,
-        project: true,
+        // Reference BOTH tsconfigs: the production one (src only) and the
+        // test one (src + tests + *.test.ts / *.spec.ts). ESLint's TS parser
+        // accepts an array and resolves each file against any matching project.
+        project: ['./tsconfig.json', './tsconfig.test.json'],
       },
       globals: {
         console: 'readonly',
@@ -33,6 +36,6 @@ export default [
   },
   prettier,
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
   },
 ];
