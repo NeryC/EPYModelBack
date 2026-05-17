@@ -34,6 +34,29 @@ export default [
       'no-case-declarations': 'off',
     },
   },
+  {
+    // Root-level config files (vitest.config.ts, eslint.config.js, etc.).
+    // Not in any tsconfig's `include`, so we parse them without project info.
+    files: ['*.config.{ts,js,cjs,mjs}', '*.{ts,js}'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        sourceType: 'module',
+        ecmaVersion: 2022,
+      },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    },
+  },
   prettier,
   {
     ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
