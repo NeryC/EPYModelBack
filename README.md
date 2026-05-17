@@ -222,12 +222,12 @@ Response (Domain Output → DTO → HTTP Response)
 
 ### Dependency Rules
 
-| Layer | Can Import From |
-|-------|----------------|
-| **Domain** | Only `shared` |
-| **Application** | `domain`, `shared`, `config` |
-| **Infrastructure** | `domain`, `application`, `shared`, `config` |
-| **API/Presentation** | All layers |
+| Layer                | Can Import From                             |
+| -------------------- | ------------------------------------------- |
+| **Domain**           | Only `shared`                               |
+| **Application**      | `domain`, `shared`, `config`                |
+| **Infrastructure**   | `domain`, `application`, `shared`, `config` |
+| **API/Presentation** | All layers                                  |
 
 📖 **Complete architecture documentation**: See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
 
@@ -374,6 +374,7 @@ R_PATH=R                               # Path to R executable
 The project uses TypeScript with strict configuration. See `tsconfig.json` for details.
 
 **Enabled features**:
+
 - `strict: true` - Full strict mode
 - `noImplicitAny: true` - No implicit `any` allowed
 - `strictNullChecks: true` - Strict null/undefined checking
@@ -461,6 +462,7 @@ GET /health
 ```
 
 **Response**:
+
 ```json
 {
   "status": "OK",
@@ -479,12 +481,14 @@ GET /api/v1/simulations?Rt=[1.1,1.2,1.3]&UCI_threshold=100&V_filtered=1000&lambd
 ```
 
 **Query Parameters**:
+
 - `Rt` (string, required): JSON array of numbers representing the reproductive number
 - `UCI_threshold` (string, required): UCI threshold (positive number)
 - `V_filtered` (string, required): Filtered value (positive number)
 - `lambda_I_to_H` (string, required): Transition rate from I to H (0-1)
 
 **Success Response**:
+
 ```json
 {
   "success": true,
@@ -517,10 +521,13 @@ GET /api/v1/get-first-simulation-data
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
-  "data": { /* simulation data */ },
+  "data": {
+    /* simulation data */
+  },
   "message": "First simulation data retrieved successfully"
 }
 ```
@@ -532,10 +539,13 @@ GET /api/v1/projections
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
-  "data": [ /* array of projections */ ],
+  "data": [
+    /* array of projections */
+  ],
   "message": "Projections retrieved successfully"
 }
 ```
@@ -547,6 +557,7 @@ GET /api/v1/files
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -583,17 +594,20 @@ Returns metrics in Prometheus format.
 ### Development Environment Setup
 
 1. **Install dependencies**:
+
 ```bash
 npm install
 ```
 
 2. **Configure environment variables**:
+
 ```bash
 cp config.example.env .env
 # Edit .env as needed
 ```
 
 3. **Start in development mode**:
+
 ```bash
 npm run dev
 ```
@@ -605,6 +619,7 @@ The server will start at `http://localhost:3001` with hot reload enabled.
 To add a new endpoint, follow these steps:
 
 1. **Define DTO in `api/v1/`**:
+
 ```typescript
 // api/v1/new-feature/dto.ts
 import { z } from 'zod';
@@ -616,16 +631,16 @@ export const NewFeatureQuerySchema = z.object({
 ```
 
 2. **Create Use Case in `application/`**:
+
 ```typescript
 // application/new-feature/get-feature.ts
-export async function getFeatureUseCase(
-  input: NewFeatureInput
-): Promise<NewFeatureOutput> {
+export async function getFeatureUseCase(input: NewFeatureInput): Promise<NewFeatureOutput> {
   // Use case logic
 }
 ```
 
 3. **Create Controller**:
+
 ```typescript
 // controllers/newFeatureController.ts
 export class NewFeatureController {
@@ -638,22 +653,21 @@ export class NewFeatureController {
 ```
 
 4. **Define Route**:
+
 ```typescript
 // routes/newFeatureRoutes.ts
-router.get('/new-feature', 
-  validateQuery(NewFeatureQuerySchema),
-  controller.getFeature
-);
+router.get('/new-feature', validateQuery(NewFeatureQuerySchema), controller.getFeature);
 ```
 
 5. **Register route in `index.ts`**:
+
 ```typescript
 app.use('/api/v1', newFeatureRoutes);
 ```
 
 ### Code Conventions
 
-- **Naming**: 
+- **Naming**:
   - Files: `kebab-case.ts`
   - Classes: `PascalCase`
   - Functions: `camelCase`
@@ -666,6 +680,7 @@ app.use('/api/v1', newFeatureRoutes);
 ### Hot Reload
 
 Development mode includes:
+
 - **TypeScript watch**: Automatically recompiles when `.ts` files change
 - **Nodemon**: Restarts server when compiled files change
 
@@ -736,16 +751,19 @@ REDIS_URL=redis://your-redis:6379
 #### Deployment Process
 
 1. **Compile**:
+
 ```bash
 npm run build
 ```
 
 2. **Verify**:
+
 ```bash
 npm run lint
 ```
 
 3. **Start**:
+
 ```bash
 npm start
 ```
@@ -772,6 +790,7 @@ The project uses **Pino** for structured logging. Logs include:
 - **Timestamp**: Date and time of the event
 
 **Log Example**:
+
 ```json
 {
   "level": 30,
@@ -822,14 +841,16 @@ The `/health` endpoint provides information about the system status:
 
 #### Error: "Python script execution failed"
 
-**Solution**: 
+**Solution**:
+
 - Verify that Python 3.8+ is installed
 - Verify that Python dependencies are installed
 - Check logs for more details
 
 #### Error: "Redis connection failed"
 
-**Solution**: 
+**Solution**:
+
 - If Redis is optional, you can continue without it (will use node-cron as fallback)
 - If required, verify that Redis is running and the URL is correct
 
