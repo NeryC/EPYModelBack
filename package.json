@@ -25,7 +25,8 @@
     "test_seirhuf": "tsx ./packageScripts/runExecTest_seirhuf.ts",
     "generate-graphic": "tsx ./packageScripts/runGenerateGraphicFiles.ts",
     "generate-simulation": "tsx ./packageScripts/runGenerateSimulationFiles.ts",
-    "get-simulation": "python ./src/scripts/simulador.py"
+    "get-simulation": "python ./src/scripts/simulador.py",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -67,6 +68,8 @@
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^9.1.2",
     "fast-check": "^3.23.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "nodemon": "^3.1.10",
     "pino-pretty": "^11.3.0",
     "prettier": "^3.6.2",
