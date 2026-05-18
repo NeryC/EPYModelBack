@@ -5,8 +5,7 @@
   "reporters": ["html", "clear-text", "progress"],
   "testRunner": "vitest",
   "vitest": {
-    "configFile": "vitest.config.ts",
-    "project": "unit"
+    "configFile": "vitest.config.ts"
   },
   "coverageAnalysis": "perTest",
   "mutate": [
