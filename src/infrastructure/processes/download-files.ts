@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { getPath } from './get-script.js';
 import { execSyncScript } from './exec-sync-script.js';
 import { pathNames, fileNames } from '../../shared/constants.js';
@@ -20,11 +21,11 @@ const execDownload = async (csvName: string, pyScript: string): Promise<void> =>
     logger.info(`Attempting to download ${csvName} (attempt ${attempts + 1}/${MAX_RETRIES})`);
     try {
       execSyncScript(pathNames.PY_DOWNLOAD_SCRIPTS, pyScript);
-    } catch (error) {
+    } catch {
       logger.error(`Download failed for ${csvName}`);
     }
     if (!fs.existsSync(filePath)) {
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      await sleep(RETRY_DELAY_MS);
     }
     attempts++;
   }
@@ -33,4 +34,3 @@ const execDownload = async (csvName: string, pyScript: string): Promise<void> =>
   }
   logger.info(`${csvName} downloaded`);
 };
-

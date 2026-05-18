@@ -1,6 +1,6 @@
 /**
  * Infrastructure Layer - Projection Repository Implementation
- * 
+ *
  * This file implements the IProjectionRepository interface from the domain layer.
  * It handles file-based persistence for projections.
  */
@@ -99,10 +99,9 @@ export class FileProjectionRepository implements IProjectionRepository {
    * Find projection by ID
    * Note: Current implementation uses file-based storage, so this is not fully implemented
    */
-  async findById(id: string): Promise<Projection | null> {
+  async findById(_id: string): Promise<Projection | null> {
     // In a file-based system, we'd need to read all and filter
     // For now, return null as we don't have proper ID-based storage
     return null;
   }
 }
-

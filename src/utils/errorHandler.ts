@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import { ApiResponse } from "../types/index.js";
+import { NextFunction, Request, Response } from 'express';
+import { ApiResponse } from '../types/index.js';
 
 /**
  * Custom error class for application-specific errors
@@ -8,11 +8,7 @@ export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
 
-  constructor(
-    message: string,
-    statusCode: number = 500,
-    isOperational: boolean = true
-  ) {
+  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
@@ -27,7 +23,7 @@ export class AppError extends Error {
 export function sendErrorResponse(
   res: Response,
   error: Error | AppError,
-  statusCode: number = 500
+  statusCode: number = 500,
 ): void {
   const isAppError = error instanceof AppError;
   const finalStatusCode = isAppError ? error.statusCode : statusCode;
@@ -35,7 +31,7 @@ export function sendErrorResponse(
   const response: ApiResponse = {
     success: false,
     error: error.message,
-    message: "An error occurred while processing your request",
+    message: 'An error occurred while processing your request',
   };
 
   res.status(finalStatusCode).json(response);
@@ -47,8 +43,8 @@ export function sendErrorResponse(
 export function sendSuccessResponse<T>(
   res: Response,
   data: T,
-  message: string = "Operation completed successfully",
-  statusCode: number = 200
+  message: string = 'Operation completed successfully',
+  statusCode: number = 200,
 ): void {
   const response: ApiResponse<T> = {
     success: true,
@@ -62,7 +58,9 @@ export function sendSuccessResponse<T>(
 /**
  * Async error wrapper for route handlers
  */
-export const asyncHandler = (fn: Function) => {
+type RouteHandler = (req: Request, res: Response, next: NextFunction) => unknown | Promise<unknown>;
+
+export const asyncHandler = (fn: RouteHandler) => {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
@@ -73,14 +71,11 @@ export const asyncHandler = (fn: Function) => {
  */
 export function validateQueryParams(
   query: Record<string, unknown>,
-  requiredParams: string[]
+  requiredParams: string[],
 ): void {
   const missingParams = requiredParams.filter((param) => !query[param]);
 
   if (missingParams.length > 0) {
-    throw new AppError(
-      `Missing required query parameters: ${missingParams.join(", ")}`,
-      400
-    );
+    throw new AppError(`Missing required query parameters: ${missingParams.join(', ')}`, 400);
   }
 }

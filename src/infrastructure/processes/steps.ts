@@ -5,7 +5,7 @@ import { moveFile } from './move-file.js';
 import { getFirstSimulation } from './simulation-adapter.js';
 
 export const downloadRawData = (): void => {
-  downloadFiles();
+  void downloadFiles();
 };
 
 export const execPreProcessing = (): void => {
@@ -29,6 +29,5 @@ export const generateGraphicFiles = (): void => {
 };
 
 export const generateSimulationFiles = (): void => {
-  getFirstSimulation();
+  void getFirstSimulation();
 };
-

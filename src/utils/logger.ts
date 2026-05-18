@@ -1,14 +1,15 @@
-import pino from 'pino';
+import pino, { type LoggerOptions, type TransportSingleOptions } from 'pino';
 
 const level = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
 
-export const logger = pino({
-  level,
-  transport:
-    process.env.NODE_ENV === 'production'
-      ? undefined
-      : ({
-          target: 'pino-pretty',
-          options: { colorize: true, singleLine: true },
-        } as any),
-});
+const options: LoggerOptions = { level };
+
+if (process.env.NODE_ENV !== 'production') {
+  const transport: TransportSingleOptions = {
+    target: 'pino-pretty',
+    options: { colorize: true, singleLine: true },
+  };
+  options.transport = transport;
+}
+
+export const logger = pino(options);
