@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express, { Express, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import { createRateLimiters, RateLimitConfig, SIMULATION_PATHS } from './middleware/rateLimits.js';
 import { randomUUID } from 'crypto';
 import projectionRoutes from './routes/projectionRoutes.js';
 import simulationRoutes from './routes/simulationRoutes.js';
@@ -25,6 +25,8 @@ export interface CreateAppOptions {
    * the dev-mode auto-mount from running.
    */
   skipSwagger?: boolean;
+  /** Sobrescribe los límites de peticiones del entorno (útil en tests). */
+  rateLimit?: Partial<RateLimitConfig>;
 }
 
 export function createApp(options: CreateAppOptions = {}): Express {
@@ -47,8 +49,9 @@ export function createApp(options: CreateAppOptions = {}): Express {
   app.disable('x-powered-by');
 
   if (!options.disableRateLimit) {
-    const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
-    app.use(limiter);
+    const limiters = createRateLimiters({ ...environment.RATE_LIMIT, ...options.rateLimit });
+    app.use(limiters.general);
+    app.use(SIMULATION_PATHS, limiters.simulations);
   }
 
   app.use(express.json({ limit: '10mb' }));
@@ -96,7 +99,8 @@ export function createApp(options: CreateAppOptions = {}): Express {
   app.use((error: Error | AppError, req: Request, res: Response, _next: NextFunction) => {
     logger.error({ err: error }, 'global_error');
     if (error instanceof AppError) return sendErrorResponse(res, error, error.statusCode);
-    if (error.name === 'ValidationError') return sendErrorResponse(res, new AppError(error.message, 400));
+    if (error.name === 'ValidationError')
+      return sendErrorResponse(res, new AppError(error.message, 400));
     if (error.name === 'ENOENT') return sendErrorResponse(res, new AppError('File not found', 404));
     return sendErrorResponse(res, error, 500);
   });

@@ -1,0 +1,8 @@
+# Datos y resultados generados por el pipeline (R/Python): no se formatean.
+# simulation.json y proy*.json se reescriben al regenerar; formatearlos
+# ensuciaría el árbol de git en cada arranque del servidor.
+public/data/
+public/results/
+storage/
+coverage/
+dist/
