@@ -10,6 +10,22 @@ import('./infrastructure/storage/file-repository.js')
 
 const app = createApp();
 
+// Regenera la simulación inicial con la versión actual de simulador.py para que
+// /get-first-simulation-data nunca sirva resultados de un modelo anterior.
+// Si Python no está disponible se sigue sirviendo el archivo versionado
+// (protegido por src/scripts/simulation-freshness.test.ts).
+if (environment.NODE_ENV !== 'test') {
+  import('./infrastructure/processes/simulation-adapter.js')
+    .then((m) => m.getFirstSimulation())
+    .then(() => logger.info({ python: environment.PYTHON_PATH }, 'first_simulation_regenerated'))
+    .catch((err: unknown) =>
+      logger.warn(
+        { err, python: environment.PYTHON_PATH },
+        'first_simulation_regeneration_failed: serving committed public/results/simulation.json',
+      ),
+    );
+}
+
 function displayWelcomeMessage(port: number, env: string) {
   const banner = `
 ╔══════════════════════════════════════════════════════════════╗

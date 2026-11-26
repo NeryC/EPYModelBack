@@ -1,4 +1,5 @@
 import { existsSync } from 'fs';
+import { availableParallelism } from 'os';
 import path from 'path';
 import { EnvironmentConfig } from '../types/index.js';
 import { logger } from '../utils/logger.js';
@@ -48,6 +49,14 @@ export const environment: EnvironmentConfig = {
   PYTHON_PATH: resolvePythonPath(),
   // Una simulación normal tarda ~1 s; los casos rígidos más extremos, ~10 s.
   SIMULATION_TIMEOUT_MS: positiveInt(process.env.SIMULATION_TIMEOUT_MS, 60_000),
+  // Tope global de simulaciones en paralelo (por defecto, una por núcleo) y
+  // cola de espera acotada: el límite por IP no protege la CPU si llegan
+  // peticiones desde muchas IPs a la vez.
+  MAX_CONCURRENT_SIMULATIONS: positiveInt(
+    process.env.MAX_CONCURRENT_SIMULATIONS,
+    Math.max(2, availableParallelism()),
+  ),
+  SIMULATION_QUEUE_MAX: positiveInt(process.env.SIMULATION_QUEUE_MAX, 50),
   // Límites por IP y ventana. Antes: 100 peticiones / 15 min para TODA la API,
   // lo que una clase o una defensa detrás de una misma IP agotaba enseguida.
   RATE_LIMIT: {
