@@ -69,22 +69,35 @@ ARCHIVO_REGISTRO_DIARIO = os.path.join(DATA_DIR, "REGISTRO DIARIO_Datos completo
 # Helpers internos
 # ---------------------------------------------------------------------------
 
-def _normalizar_fecha(df: pd.DataFrame, col: str = "fecha") -> pd.DataFrame:
+# Formatos de fecha de las fuentes. El REGISTRO DIARIO del MSPBS usa
+# día/mes/año; el resto (salidas de R, series revisadas) usa ISO.
+FORMATO_ISO = "ISO8601"
+FORMATO_REGISTRO_DIARIO = "%d/%m/%Y"
+
+
+def _normalizar_fecha(
+    df: pd.DataFrame, col: str = "fecha", formato: str = FORMATO_ISO
+) -> pd.DataFrame:
     """
     Convierte una columna de fechas a formato string 'YYYY-MM-DD'.
 
-    Acepta cualquier formato que pandas pueda parsear (incluyendo timestamps).
+    El formato de entrada es EXPLÍCITO y una fecha ilegible detiene el
+    pipeline (antes: `errors="coerce"` sin formato). Con pandas ≥ 2 eso hacía
+    que "04/01/2020" (4 de enero) se leyera como 1 de abril y que las fechas
+    con día > 12 pasaran a null en silencio: al regenerar proyH/proyU se
+    perdían 649 de 1030 días observados y ~345 quedaban en otra fecha.
 
     Parameters
     ----------
-    df  : DataFrame a modificar (in-place).
-    col : Nombre de la columna de fechas.
+    df      : DataFrame a modificar (in-place).
+    col     : Nombre de la columna de fechas.
+    formato : Formato de entrada (FORMATO_ISO o FORMATO_REGISTRO_DIARIO).
 
     Returns
     -------
     El mismo DataFrame con la columna convertida.
     """
-    df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime("%Y-%m-%d")
+    df[col] = pd.to_datetime(df[col], format=formato).dt.strftime("%Y-%m-%d")
     return df
 
 
@@ -143,7 +156,7 @@ def _construir_proyeccion(archivo_proyeccion: str) -> pd.DataFrame:
     df_raw.rename(columns={"date": "fecha"}, inplace=True)
 
     # Convertir fechas a string YYYY-MM-DD
-    df = pd.to_datetime(df_raw["fecha"], errors="coerce").dt.strftime("%Y-%m-%d").to_frame()
+    df = pd.to_datetime(df_raw["fecha"], format=FORMATO_ISO).dt.strftime("%Y-%m-%d").to_frame()
 
     # Insertar columnas de proyección en orden fijo (requerido por el frontend)
     df.insert(1,  "peor",  df_raw["unc_h"])   # Banda superior
@@ -251,7 +264,7 @@ def proyeccionH() -> None:
     df_obs.rename(
         columns={"Fecha": "fecha", "Internados Generales": "Hospitalizados"}, inplace=True
     )
-    df_obs = _normalizar_fecha(df_obs)[["fecha", "Hospitalizados"]]
+    df_obs = _normalizar_fecha(df_obs, formato=FORMATO_REGISTRO_DIARIO)[["fecha", "Hospitalizados"]]
 
     # 4. Merge
     df = (
@@ -289,7 +302,7 @@ def proyeccionU() -> None:
     # 3. Datos observados reales (internados en UTI)
     df_obs = pd.read_csv(ARCHIVO_REGISTRO_DIARIO, header=0, sep=";")
     df_obs.rename(columns={"Fecha": "fecha", "Internados UTI": "UTI"}, inplace=True)
-    df_obs = _normalizar_fecha(df_obs)[["fecha", "UTI"]]
+    df_obs = _normalizar_fecha(df_obs, formato=FORMATO_REGISTRO_DIARIO)[["fecha", "UTI"]]
 
     # 4. Merge
     df = (

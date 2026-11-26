@@ -4,3 +4,6 @@ dist
 .env.*
 *.log
 .git
+
+# Virtualenv local de Python (en el contenedor se usa el python3 del sistema)
+.venv

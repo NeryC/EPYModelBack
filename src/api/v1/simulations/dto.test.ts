@@ -79,15 +79,38 @@ describe('SimulationParamsSchema — Rt (Boundary Value Analysis)', () => {
     ).toThrow();
   });
 
-  it('accepts an empty Rt array', () => {
+  const rtBase = { UCI_threshold: 100, V_filtered: 1000, lambda_I_to_H: 0.5 };
+  it('rejects an empty Rt array (0 meses)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...rtBase, Rt: '[]' })).toThrow(/between 1 and 12/);
+  });
+  it('accepts 1 month (lower bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...rtBase, Rt: '[1]' })).not.toThrow();
+  });
+  it('accepts 12 months (upper bound)', () => {
     expect(() =>
-      SimulationParamsSchema.parse({
-        Rt: '[]',
-        UCI_threshold: 100,
-        V_filtered: 1000,
-        lambda_I_to_H: 0.5,
-      }),
+      SimulationParamsSchema.parse({ ...rtBase, Rt: JSON.stringify(Array(12).fill(1)) }),
     ).not.toThrow();
+  });
+  it('rejects 13 months (just above upper bound)', () => {
+    expect(() =>
+      SimulationParamsSchema.parse({ ...rtBase, Rt: JSON.stringify(Array(13).fill(1)) }),
+    ).toThrow(/between 1 and 12/);
+  });
+  it('accepts Rt values 0 and 2 (value bounds)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...rtBase, Rt: '[0, 2]' })).not.toThrow();
+  });
+  it('rejects a negative Rt value', () => {
+    expect(() => SimulationParamsSchema.parse({ ...rtBase, Rt: '[1, -0.1]' })).toThrow(
+      /between 0 and 2/,
+    );
+  });
+  it('rejects an Rt value above 2', () => {
+    expect(() => SimulationParamsSchema.parse({ ...rtBase, Rt: '[2.01]' })).toThrow(
+      /between 0 and 2/,
+    );
+  });
+  it('rejects null inside the Rt array', () => {
+    expect(() => SimulationParamsSchema.parse({ ...rtBase, Rt: '[1, null]' })).toThrow();
   });
 });
 
@@ -103,11 +126,11 @@ describe('SimulationParamsSchema — UCI_threshold (BVA)', () => {
   it('accepts 1 (just inside lower bound)', () => {
     expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 1 })).not.toThrow();
   });
-  it('accepts 10000 (upper bound)', () => {
-    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 10000 })).not.toThrow();
+  it('accepts 5000 (upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 5000 })).not.toThrow();
   });
-  it('rejects 10001 (just above upper bound)', () => {
-    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 10001 })).toThrow();
+  it('rejects 5001 (just above upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, UCI_threshold: 5001 })).toThrow();
   });
 });
 
@@ -120,11 +143,11 @@ describe('SimulationParamsSchema — V_filtered (BVA)', () => {
   it('accepts 1', () => {
     expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 1 })).not.toThrow();
   });
-  it('accepts 1000000 (upper bound)', () => {
-    expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 1000000 })).not.toThrow();
+  it('accepts 5000 (upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 5000 })).not.toThrow();
   });
-  it('rejects 1000001 (just above upper bound)', () => {
-    expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 1000001 })).toThrow();
+  it('rejects 5001 (just above upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, V_filtered: 5001 })).toThrow();
   });
 });
 
@@ -137,11 +160,14 @@ describe('SimulationParamsSchema — lambda_I_to_H (BVA)', () => {
   it('rejects negative values just below lower bound', () => {
     expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: -0.001 })).toThrow();
   });
-  it('accepts 1 (upper bound)', () => {
-    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 1 })).not.toThrow();
+  it('accepts 0.99 (upper bound)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 0.99 })).not.toThrow();
   });
   it('rejects values just above upper bound', () => {
-    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 1.0001 })).toThrow();
+    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 0.9901 })).toThrow();
+  });
+  it('rejects 1 (con λ=1 la fracción I→O sería negativa)', () => {
+    expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 1 })).toThrow();
   });
   it('accepts the midpoint 0.5', () => {
     expect(() => SimulationParamsSchema.parse({ ...base, lambda_I_to_H: 0.5 })).not.toThrow();
@@ -157,6 +183,34 @@ describe('SimulationQuerySchema (query string variant)', () => {
       lambda_I_to_H: '0.5',
     });
     expect(result.UCI_threshold).toBe('100');
+  });
+
+  it.each([
+    ['UCI_threshold', '5001'],
+    ['V_filtered', '5001'],
+    ['lambda_I_to_H', '0.995'],
+    ['UCI_threshold', '0'],
+    ['V_filtered', '0'],
+  ])('rejects out-of-range %s=%s in the query string', (field, value) => {
+    const query = {
+      Rt: '[1.1]',
+      UCI_threshold: '100',
+      V_filtered: '1000',
+      lambda_I_to_H: '0.5',
+      [field]: value,
+    };
+    expect(() => SimulationQuerySchema.parse(query)).toThrow(/must be between/);
+  });
+
+  it('rejects an Rt query with 13 months', () => {
+    expect(() =>
+      SimulationQuerySchema.parse({
+        Rt: JSON.stringify(Array(13).fill(1)),
+        UCI_threshold: '100',
+        V_filtered: '1000',
+        lambda_I_to_H: '0.5',
+      }),
+    ).toThrow(/between 1 and 12/);
   });
 
   it('rejects non-numeric query strings', () => {
@@ -184,7 +238,12 @@ describe('validateSimulationParams / validateSimulationQuery helpers', () => {
 
   it('validateSimulationQuery throws on invalid input', () => {
     expect(() =>
-      validateSimulationQuery({ Rt: 'bad', UCI_threshold: 'x', V_filtered: 'y', lambda_I_to_H: 'z' }),
+      validateSimulationQuery({
+        Rt: 'bad',
+        UCI_threshold: 'x',
+        V_filtered: 'y',
+        lambda_I_to_H: 'z',
+      }),
     ).toThrow();
   });
 });

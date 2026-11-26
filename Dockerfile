@@ -19,9 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Node.js 18 ────────────────────────────────────────────────
-# El script setup_18.x ejecuta su propio apt-get update internamente.
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+# ── Node.js 24 LTS ────────────────────────────────────────────
+# (Node 18 quedó sin soporte en abr-2025; 24 es LTS hasta abr-2028 y es la
+# versión con la que se desarrolla y verifica localmente.)
+# El script setup_24.x ejecuta su propio apt-get update internamente.
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
@@ -65,6 +67,15 @@ RUN npm install
 # ── Código fuente y build TypeScript ─────────────────────────
 COPY . .
 RUN npm run build
+
+# ── Entorno de ejecución ──────────────────────────────────────
+# Después del build a propósito: con NODE_ENV=production antes, `npm install`
+# omitiría las devDependencies (TypeScript) y el build fallaría.
+# Sin estas variables la imagen arrancaba en modo desarrollo (Swagger expuesto,
+# logs de depuración) y con NODE_ENV=production sin PORT la app se detenía.
+# CORS_ORIGIN debe definirse al desplegar (p. ej. -e CORS_ORIGIN=https://mi-dominio).
+ENV NODE_ENV=production \
+    PORT=3001
 
 EXPOSE 3001
 

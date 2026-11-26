@@ -8,10 +8,7 @@ vi.mock('../../src/infrastructure/processes/simulation-adapter.js', () => ({
 
 import { executeSimulationUseCase } from '../../src/application/simulations/get-simulation.js';
 import { getSimulation } from '../../src/infrastructure/processes/simulation-adapter.js';
-import type {
-  SimulationDataPoint,
-  SimulationResults,
-} from '../../src/domain/simulation.js';
+import type { SimulationDataPoint, SimulationResults } from '../../src/domain/simulation.js';
 
 function buildSeries(length: number, monotonic = false): SimulationDataPoint[] {
   const out: SimulationDataPoint[] = [];
@@ -37,11 +34,12 @@ function buildResults(length: number): SimulationResults {
   };
 }
 
+// Rangos = SIMULATION_LIMITS (src/domain/simulation.ts)
 const validParams = fc.record({
-  Rt: fc.array(fc.float({ min: 0.5, max: 4, noNaN: true }), { minLength: 1, maxLength: 50 }),
-  UCI_threshold: fc.integer({ min: 1, max: 10000 }),
-  V_filtered: fc.integer({ min: 1, max: 1000000 }),
-  lambda_I_to_H: fc.float({ min: 0, max: 1, noNaN: true }),
+  Rt: fc.array(fc.float({ min: 0, max: 2, noNaN: true }), { minLength: 1, maxLength: 12 }),
+  UCI_threshold: fc.integer({ min: 1, max: 5000 }),
+  V_filtered: fc.integer({ min: 1, max: 5000 }),
+  lambda_I_to_H: fc.float({ min: 0, max: Math.fround(0.99), noNaN: true }),
 });
 
 describe('SEIRHUF model invariants (property-based)', () => {

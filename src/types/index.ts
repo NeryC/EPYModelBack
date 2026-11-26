@@ -4,6 +4,20 @@ export interface EnvironmentConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   CORS_ORIGIN?: string;
   REDIS_URL?: string;
+  /** Intérprete de Python que ejecuta simulador.py (debe tener numpy y scipy). */
+  PYTHON_PATH: string;
+  /** Tiempo máximo de una simulación antes de cortarla (ms). */
+  SIMULATION_TIMEOUT_MS: number;
+  /** Procesos de Python simultáneos como máximo (tope global, no por IP). */
+  MAX_CONCURRENT_SIMULATIONS: number;
+  /** Simulaciones que pueden esperar turno; más allá se responde 503. */
+  SIMULATION_QUEUE_MAX: number;
+  /** Límites de peticiones por IP (ver middleware/rateLimits.ts). */
+  RATE_LIMIT: {
+    windowMinutes: number;
+    max: number;
+    simulationMax: number;
+  };
 }
 
 // Simulation parameters
