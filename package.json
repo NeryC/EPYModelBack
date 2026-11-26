@@ -19,6 +19,7 @@
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run",
     "test:ci": "npm run test:unit && npm run test:integration && npm run test:coverage",
+    "validate-data": "tsx ./packageScripts/runValidateData.ts",
     "start-main-flow": "tsx ./packageScripts/runMainFlow.ts",
     "download-raw-data": "tsx ./packageScripts/runDownloadRawData.ts",
     "pre-processing": "tsx ./packageScripts/runExecPreProcessing.ts",
