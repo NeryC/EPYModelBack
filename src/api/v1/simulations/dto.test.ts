@@ -151,6 +151,24 @@ describe('SimulationParamsSchema — V_filtered (BVA)', () => {
   });
 });
 
+describe('Camas UCI y vacunados por día deben ser enteros', () => {
+  const base = { Rt: '[1.0]', UCI_threshold: 100, V_filtered: 1000, lambda_I_to_H: 0.5 };
+  const query = { Rt: '[1.0]', UCI_threshold: '100', V_filtered: '1000', lambda_I_to_H: '0.5' };
+
+  it.each(['UCI_threshold', 'V_filtered'])('%s = 12.5 se rechaza (params y query)', (campo) => {
+    expect(() => SimulationParamsSchema.parse({ ...base, [campo]: 12.5 })).toThrow(/whole number/);
+    expect(() => SimulationQuerySchema.parse({ ...query, [campo]: '12.5' })).toThrow(
+      /whole number/,
+    );
+  });
+  it('12.0 escrito con decimales se acepta (es entero)', () => {
+    expect(() => SimulationQuerySchema.parse({ ...query, UCI_threshold: '12.0' })).not.toThrow();
+  });
+  it('lambda_I_to_H sigue admitiendo decimales', () => {
+    expect(() => SimulationQuerySchema.parse({ ...query, lambda_I_to_H: '0.003' })).not.toThrow();
+  });
+});
+
 describe('SimulationParamsSchema — lambda_I_to_H (BVA)', () => {
   const base = { Rt: '[1.0]', UCI_threshold: 100, V_filtered: 1000 };
 
