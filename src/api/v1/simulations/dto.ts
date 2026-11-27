@@ -53,10 +53,12 @@ export const SimulationParamsSchema = z.object({
   Rt: rtValidator,
   UCI_threshold: z.coerce
     .number()
+    .int('UCI_threshold must be a whole number')
     .min(L.UCI_MIN, rangeMessage('UCI_threshold', L.UCI_MIN, L.UCI_MAX))
     .max(L.UCI_MAX, rangeMessage('UCI_threshold', L.UCI_MIN, L.UCI_MAX)),
   V_filtered: z.coerce
     .number()
+    .int('V_filtered must be a whole number')
     .min(L.V_MIN, rangeMessage('V_filtered', L.V_MIN, L.V_MAX))
     .max(L.V_MAX, rangeMessage('V_filtered', L.V_MIN, L.V_MAX)),
   lambda_I_to_H: z.coerce
@@ -70,10 +72,14 @@ export const SimulationParamsSchema = z.object({
  * Se mantiene como string porque validateQuery copia el resultado a req.query
  * y el controlador hace la conversión final.
  */
-const numericQueryString = (name: string, min: number, max: number) =>
+const numericQueryString = (name: string, min: number, max: number, integer = false) =>
   z
     .string()
     .regex(/^\d+(\.\d+)?$/, `${name} must be a valid number`)
+    // Camas y personas por día: enteros (antes se aceptaba 12.5 camas)
+    .refine((v) => !integer || Number.isInteger(Number(v)), {
+      message: `${name} must be a whole number`,
+    })
     .refine((v) => Number(v) >= min && Number(v) <= max, {
       message: rangeMessage(name, min, max),
     });
@@ -83,8 +89,8 @@ const numericQueryString = (name: string, min: number, max: number) =>
 // The controller will parse them to the correct types
 export const SimulationQuerySchema = z.object({
   Rt: rtValidator,
-  UCI_threshold: numericQueryString('UCI_threshold', L.UCI_MIN, L.UCI_MAX),
-  V_filtered: numericQueryString('V_filtered', L.V_MIN, L.V_MAX),
+  UCI_threshold: numericQueryString('UCI_threshold', L.UCI_MIN, L.UCI_MAX, true),
+  V_filtered: numericQueryString('V_filtered', L.V_MIN, L.V_MAX, true),
   lambda_I_to_H: numericQueryString('lambda_I_to_H', L.LAMBDA_MIN, L.LAMBDA_MAX),
 });
 

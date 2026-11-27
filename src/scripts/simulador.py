@@ -47,11 +47,24 @@ Fracciones de transición (Fracciones)
   hospitalizados y fallecidos saltaban un orden de magnitud el día 0 y no
   coincidían con la página de proyecciones.
 
-Rt: número reproductivo EFECTIVO al inicio de cada mes
-------------------------------------------------------
+Rt: número reproductivo EFECTIVO de cada mes, con transición gradual
+--------------------------------------------------------------------
   Para cada mes m se calibra la transmisión con el S al inicio del mes:
 
       beta_m = Rt_m · gamma · N / S(inicio del mes m)
+
+  donde S(inicio del mes m) es el que habría si siguiera rigiendo el Rt del
+  mes anterior (el mismo valor que con el cambio de golpe; la transición ya
+  empezó 7 días antes, pero en 7 días S cambia muy poco).
+
+  Entre un mes y el siguiente beta NO salta de golpe: pasa linealmente de
+  beta_m a beta_m+1 durante TRANSICION_RT_DIAS días centrados en el borde
+  (días 30·(m+1) − 7 … 30·(m+1) + 7). Un salto instantáneo (todo el país
+  cambiando de comportamiento de un día para otro) hacía caer o subir los
+  contagios nuevos de golpe y dibujaba picos en ángulo en Expuestos e
+  Infectados, que no ocurren en una epidemia real. Como la rampa es
+  simétrica, el Rt promedio de cada mes sigue siendo el indicado, y los
+  hospitalizados, UCI y fallecidos casi no cambian (< 2 % en los picos).
 
   de modo que la fuerza de infección beta_m · (S/N) · I vale exactamente
   Rt_m · gamma · I al empezar el mes: con Rt > 1 la infección crece y con
@@ -161,6 +174,12 @@ K_VACUNA: float = 100.0
 
 # Tolerancia de conservación de la población (S+E+I+H+U+F+O constante)
 TOLERANCIA_CONSERVACION: float = 1e-4
+
+# Días que dura el paso del Rt de un mes al siguiente (centrados en el borde).
+# Par y menor que 30 para que las transiciones no se superpongan.
+DIAS_POR_MES: int = 30
+TRANSICION_RT_DIAS: int = 14
+assert TRANSICION_RT_DIAS % 2 == 0 and 0 <= TRANSICION_RT_DIAS < DIAS_POR_MES
 
 
 @dataclass(frozen=True)
@@ -381,6 +400,117 @@ def verificar_solucion(solucion: np.ndarray, info: dict[str, Any], x0: list[floa
 
 
 # ---------------------------------------------------------------------------
+# Integración numérica
+# ---------------------------------------------------------------------------
+
+def _odes_rampa(
+    state: list[float],
+    t: float,
+    beta_ini: float,
+    beta_fin: float,
+    t_ini: float,
+    t_fin: float,
+    uci_threshold: float,
+    V_filtered: float,
+    lambda_I_to_H: float,
+    fr: Fracciones,
+) -> list[float]:
+    """odes() con beta interpolada linealmente entre t_ini (beta_ini) y t_fin (beta_fin)."""
+    if t_fin > t_ini:
+        w = min(max((t - t_ini) / (t_fin - t_ini), 0.0), 1.0)
+    else:
+        w = 1.0
+    beta = beta_ini + (beta_fin - beta_ini) * w
+    return odes(state, t, beta, uci_threshold, V_filtered, lambda_I_to_H, fr)
+
+
+def integrar(
+    x0: list[float],
+    Rt: list[float],
+    uci_threshold: float,
+    V_filtered: float,
+    lam_I_to_H: float,
+    fr: Fracciones,
+    betas: list[float] | None = None,
+) -> np.ndarray:
+    """
+    Integra el modelo y devuelve el estado en cada día entero: matriz
+    (30·len(Rt)) × 8 con columnas [S, E, I, C, H, U, F, O].
+
+    El tiempo se divide en tramos de beta constante (meseta de cada mes) y
+    tramos de transición (beta lineal entre dos meses). LSODA se reinicia en
+    cada borde de tramo: así nunca integra a través de un quiebre de beta.
+
+    Si se pasa `betas`, se le agrega la beta calibrada de cada mes.
+    """
+    num_dias = DIAS_POR_MES * len(Rt)
+    mitad = TRANSICION_RT_DIAS // 2
+    filas: list[np.ndarray] = []
+
+    def resolver(estado: np.ndarray, t_ini: int, t_fin: int,
+                 beta_ini: float, beta_fin: float) -> np.ndarray:
+        """Integra [t_ini, t_fin] con salida cada 0.1 días (beta lineal de beta_ini a beta_fin)."""
+        t = np.linspace(t_ini, t_fin, (t_fin - t_ini) * 10 + 1)
+        solucion, info = odeint(
+            _odes_rampa,
+            estado,
+            t,
+            args=(beta_ini, beta_fin, float(t_ini), float(t_fin),
+                  uci_threshold, V_filtered, lam_I_to_H, fr),
+            full_output=True,
+            printmessg=False,
+            # Margen para tramos rígidos (p. ej. vacunación que agota S en días);
+            # en escenarios normales LSODA usa muchos menos pasos.
+            mxstep=5000,
+        )
+        # Los mensajes de LSODA están silenciados (ver main): el fallo se
+        # verifica aquí y nunca se devuelve una integración fallida como válida.
+        verificar_solucion(solucion, info, x0)
+        return solucion
+
+    def guardar(solucion: np.ndarray) -> np.ndarray:
+        """Guarda los días enteros del tramo (sin el último punto) y devuelve el estado final."""
+        filas.append(solucion[:-1:10])
+        return solucion[-1]
+
+    estado = np.asarray(x0, dtype=float)
+    t_actual = 0
+    beta_mes = beta_para_rt_efectivo(Rt[0], estado[0])
+    if betas is not None:
+        betas.append(beta_mes)
+    for mes in range(len(Rt)):
+        hay_siguiente = mes + 1 < len(Rt)
+        borde = DIAS_POR_MES * (mes + 1)
+        # Meseta: beta constante del mes
+        fin_meseta = borde - mitad if hay_siguiente else num_dias
+        if fin_meseta > t_actual:
+            estado = guardar(resolver(estado, t_actual, fin_meseta, beta_mes, beta_mes))
+            t_actual = fin_meseta
+        if not hay_siguiente:
+            break
+        # beta del mes siguiente: calibrada con el S que habría al empezar el mes
+        # si siguiera el Rt del mes actual (exactamente el S que usaba la versión
+        # con salto). Se predice integrando sin guardar; así no hay cálculo
+        # circular (S del borde ↔ beta de la rampa) ni iteraciones.
+        if mitad == 0:
+            S_borde = float(estado[0])
+        else:
+            S_borde = float(resolver(estado, t_actual, borde, beta_mes, beta_mes)[-1, 0])
+        beta_siguiente = beta_para_rt_efectivo(Rt[mes + 1], S_borde)
+        if mitad > 0:
+            # Transición: beta lineal de beta_mes a beta_siguiente en 14 días
+            estado = guardar(resolver(estado, t_actual, borde + mitad, beta_mes, beta_siguiente))
+            t_actual = borde + mitad
+        beta_mes = beta_siguiente
+        if betas is not None:
+            betas.append(beta_mes)
+
+    solucion_diaria = np.vstack(filas)
+    assert solucion_diaria.shape[0] == num_dias, solucion_diaria.shape
+    return solucion_diaria
+
+
+# ---------------------------------------------------------------------------
 # Punto de entrada principal
 # ---------------------------------------------------------------------------
 
@@ -388,8 +518,8 @@ def main(params: list[str]) -> None:
     """
     Parsea los parámetros CLI, ejecuta la simulación y genera el output.
 
-    Integra el sistema mes a mes con odeint (LSODA), con salida cada 0.1 días,
-    y devuelve los valores en instantes enteros (día 0, 1, 2, …).
+    Integra el sistema con odeint (LSODA; ver integrar()) y devuelve los
+    valores en instantes enteros (día 0, 1, 2, …).
 
     Parameters
     ----------
@@ -416,7 +546,7 @@ def main(params: list[str]) -> None:
     validar_parametros(x0, Rt, uci_threshold, V_filtered, lam_I_to_H, fr)
 
     # Duración total: 30 días por cada valor de Rt
-    num_dias: int = len(Rt) * 30
+    num_dias: int = len(Rt) * DIAS_POR_MES
 
     # Redirigir fd 1 (C-level stdout) a /dev/null para suprimir mensajes
     # de advertencia de LSODA (Fortran) que python-shell capturaría como JSON.
@@ -433,32 +563,9 @@ def main(params: list[str]) -> None:
     except Exception:
         saved_fd = None
 
-    # --- Integración numérica mes a mes, con paso de salida de 0.1 días ---
-    # Rt cambia de golpe cada 30 días. Integrar cada mes por separado (reiniciando
-    # LSODA en el borde) evita que el integrador cruce esa discontinuidad, y da
-    # el S al inicio de cada mes para calibrar beta (Rt efectivo).
-    tramos: list[np.ndarray] = []
-    estado = np.asarray(x0, dtype=float)
+    # --- Integración numérica (ver integrar(): mesetas por mes y transiciones graduales) ---
     try:
-        for mes, rt_mes in enumerate(Rt):
-            t_mes = 30.0 * mes + np.arange(0, 301) * 0.1  # [30m, 30m+30] incluye el borde
-            beta = beta_para_rt_efectivo(rt_mes, estado[0])
-            solucion_mes, info = odeint(
-                odes,
-                estado,
-                t_mes,
-                args=(beta, uci_threshold, V_filtered, lam_I_to_H, fr),
-                full_output=True,
-                printmessg=False,
-                # Margen para tramos rígidos (p. ej. vacunación que agota S en días);
-                # en escenarios normales LSODA usa muchos menos pasos.
-                mxstep=5000,
-            )
-            # Los mensajes de LSODA están silenciados (ver arriba): el fallo se
-            # verifica aquí y nunca se devuelve una integración fallida como válida.
-            verificar_solucion(solucion_mes, info, x0)
-            tramos.append(solucion_mes[:-1:10])  # días 30m … 30m+29
-            estado = solucion_mes[-1]
+        solucion_diaria = integrar(x0, Rt, uci_threshold, V_filtered, lam_I_to_H, fr)
     finally:
         if saved_fd is not None and stdout_fd is not None:
             os.dup2(saved_fd, stdout_fd)
@@ -466,7 +573,6 @@ def main(params: list[str]) -> None:
 
     # --- Valores diarios (t = 0, 1, 2, …, num_dias-1) ---
     dias            = np.arange(num_dias)
-    solucion_diaria = np.vstack(tramos)
 
     def _serie(col: int) -> list[dict[str, Any]]:
         """Convierte una columna de la solución en lista [{day, value}, ...]."""
@@ -508,6 +614,7 @@ def main(params: list[str]) -> None:
                 "V_filtered": V_filtered,
                 "lambda_I_to_H": lam_I_to_H,
                 "fracciones": asdict(fr),
+                "transicion_rt_dias": TRANSICION_RT_DIAS,
             },
         }
         meta_path = os.path.join(RESULTS_DIR, "simulation.meta.json")

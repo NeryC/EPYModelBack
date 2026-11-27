@@ -1,5 +1,5 @@
 {
-  "script_sha256": "a1879b15a68ccbbdb35b8bd651398eaa7ef6ce57d25e5c7a7c9af554c34c39c6",
+  "script_sha256": "c6fd3e8907dbcc87f6fc93c241b71ec9a81241cbe87c8b56f56a7f636d949d04",
   "params": {
     "x0": [
       6051398.25123154,
@@ -27,6 +27,7 @@
       "lambda_H_to_U": 0.17595191821093742,
       "lambda_H_to_F": 0.09014999781426568,
       "lambda_U_to_F": 0.42599809121798843
-    }
+    },
+    "transicion_rt_dias": 14
   }
 }
